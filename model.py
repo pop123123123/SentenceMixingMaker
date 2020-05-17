@@ -1,4 +1,4 @@
-from sentence_mixing import main
+import sentence_mixing.sentence_mixer as sm
 
 
 class Project:
@@ -30,7 +30,7 @@ class Segment:
         self._current_combo_index = None
 
     def analyze(self):
-        self.combos = main(
+        self.combos = sm.process_sm(
             self._sentence, self.project.videos, seed=self.project.seed
         )
         self.need_analysis = False

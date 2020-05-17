@@ -1,4 +1,4 @@
-import sentence_mixing
+import sentence_mixing.sentence_mixer as sm
 
 from model import Project, Segment
 
@@ -12,7 +12,7 @@ def load_project(project_path):
 
 
 def new_project(name, seed, videos_url):
-    videos = sentence_mixing.get_videos(videos_url)
+    videos = sm.get_videos(videos_url)
     project = Project(name, seed, videos)
     return ProjectControler(project), SegmentControler(project)
 
