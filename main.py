@@ -2,9 +2,11 @@
 import os
 import sys
 
-from PySide2.QtCore import QFile
+from PySide2.QtCore import QFile, QUrl
+from PySide2.QtMultimedia import QMediaPlayer, QMediaPlaylist
+from PySide2.QtMultimediaWidgets import QVideoWidget
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QAction, QApplication, QFileDialog
+from PySide2.QtWidgets import QAction, QApplication, QFileDialog, QVBoxLayout
 
 window = None
 saved = False
@@ -66,5 +68,18 @@ if __name__ == "__main__":
     save_as_action = window.findChild(QAction, "actionSave")
     save_as_action.triggered.connect(save)
     window.show()
+
+    player = QMediaPlayer()
+
+    playlist = QMediaPlaylist(player)
+    playlist.addMedia(QUrl("file:/tmp/out.mp4"))
+
+    video_layout = window.findChild(QVBoxLayout, "video_layout")
+    videoWidget = QVideoWidget()
+    player.setVideoOutput(videoWidget)
+    player.setPlaylist(playlist)
+    video_layout.addWidget(videoWidget)
+
+    player.play()
 
     sys.exit(app.exec_())
