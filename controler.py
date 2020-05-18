@@ -44,20 +44,25 @@ class ProjectControler:
             raise Exception("Please, set project path before saving")
         # TODO: pickle serialize project
 
-    def create_segment(self, sentence):
-        new_segment = Segment(self.project, sentence)
-        self.project.segments.append(new_segment)
-
     def add_segment(self, segment):
         """Append segment at the end of the project's segment list"""
 
         self.project.segments.append(segment)
 
-    def remove_segment(self, sentence):
-        if self.selected_segment == sentence:
-            self.selected_segment = None
+    def create_segment(self, sentence):
+        """Create a segment from a sentence and appends it at the end of project's segment list"""
 
-        self.project.segments.remove(sentence)
+        new_segment = Segment(self.project, sentence)
+        self.add_segment(new_segment)
+
+    def remove_segment(self, segment_index):
+        """Remove a segment from project's segment list"""
+
+        deleted_segment = self.project.segments.pop(segment_index)
+
+        # If the deleted segment was the selected segment, de-selects it
+        if self.selected_segment == deleted_segment:
+            self.selected_segment = None
 
     def duplicate_segment(self, segment):
         """Performs a shallow copy of the given segment and appends it to the segment list"""
@@ -66,16 +71,26 @@ class ProjectControler:
         self.add_segment(segment_copy)
 
     def get_segment(self, index):
+        """Returns segment at specific index"""
+
         return self.project.segments[index]
 
     def change_current_combo_index(self, new_combo_index):
+        """Change index to current selected combo"""
+
         self.selected_segment.set_chosen_combo_index(new_combo_index)
 
     def change_selected(self, new_selected_segment):
+        """Change selected segment"""
+
         self.selected_segment = new_selected_segment
 
-    def refresh_segment(self):
-        self.selected_segment.analyze()
+    def refresh_segment(self, segment):
+        """Relaunches analysis for given segment"""
+
+        segment.analyze()
 
     def get_segment_preview(self):
+        """Returns selected segment's preview"""
+
         return self.selected_segment.generate_clip()
