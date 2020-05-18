@@ -1,3 +1,5 @@
+from copy import copy
+
 import sentence_mixing.sentence_mixer as sm
 
 from model import Project, Segment
@@ -46,6 +48,11 @@ class ProjectControler:
         new_segment = Segment(self.project, sentence)
         self.project.segments.append(new_segment)
 
+    def add_segment(self, segment):
+        """Append segment at the end of the project's segment list"""
+
+        self.project.segments.append(segment)
+
     def remove_segment(self, sentence):
         if self.selected_segment == sentence:
             self.selected_segment = None
@@ -53,8 +60,10 @@ class ProjectControler:
         self.project.segments.remove(sentence)
 
     def duplicate_segment(self, segment):
-        # TODO: le faire proprement (pas de duplication des phonemes)
-        raise NotImplementedError()
+        """Performs a shallow copy of the given segment and appends it to the segment list"""
+
+        segment_copy = copy(segment)
+        self.add_segment(segment_copy)
 
     def get_segment(self, index):
         return self.project.segments[index]
