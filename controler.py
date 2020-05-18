@@ -1,3 +1,4 @@
+import pickle
 from copy import copy
 
 import sentence_mixing.sentence_mixer as sm
@@ -6,14 +7,17 @@ from model import Project, Segment
 
 
 def load_project(project_path):
-    raise NotImplementedError()
+    """Loads project from p00p file"""
 
-    # TODO: get pickle project
-    project = None
+    with open(project_path, "rb") as f:
+        project = pickle.load(f)
+
     return ProjectControler(project, project_path)
 
 
 def new_project(name, seed, videos_url):
+    """Creates a new project"""
+
     videos = sm.get_videos(videos_url)
     project = Project(name, seed, videos)
     return ProjectControler(project)
@@ -38,11 +42,13 @@ class ProjectControler:
         # TODO: write video in file video_path
 
     def save_project(self):
-        raise NotImplementedError()
+        """Saves the project at project path url as p00p file"""
 
         if self.project_path is None:
             raise Exception("Please, set project path before saving")
-        # TODO: pickle serialize project
+
+        with open(self.project_path, "wb") as f:
+            pickle.dump(self.project, f)
 
     def add_segment(self, segment):
         """Append segment at the end of the project's segment list"""
