@@ -8,19 +8,20 @@ def load_project(project_path):
 
     # TODO: get pickle project
     project = None
-    return ProjectControler(project, project_path), SegmentControler(project)
+    return ProjectControler(project, project_path)
 
 
 def new_project(name, seed, videos_url):
     videos = sm.get_videos(videos_url)
     project = Project(name, seed, videos)
-    return ProjectControler(project), SegmentControler(project)
+    return ProjectControler(project)
 
 
 class ProjectControler:
     def __init__(self, project, project_path=None):
         self.project = project
         self.project_path = project_path
+        self.selected_segment = None
 
     def set_project_path(self, project_path):
         self.project_path = project_path
@@ -40,12 +41,6 @@ class ProjectControler:
         if self.project_path is None:
             raise Exception("Please, set project path before saving")
         # TODO: pickle serialize project
-
-
-class SegmentControler:
-    def __init__(self, project):
-        self.project = project
-        self.selected_segment = None
 
     def create_segment(self, sentence):
         new_segment = Segment(self.project, sentence)
