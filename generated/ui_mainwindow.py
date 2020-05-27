@@ -33,29 +33,23 @@ class Ui_Sentence(object):
         self.actionExport.setObjectName(u"actionExport")
         self.centralwidget = QWidget(Sentence)
         self.centralwidget.setObjectName(u"centralwidget")
-        self.horizontalLayout_3 = QHBoxLayout(self.centralwidget)
-        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
-        self.splitter = QSplitter(self.centralwidget)
-        self.splitter.setObjectName(u"splitter")
-        self.splitter.setOrientation(Qt.Vertical)
-        self.layoutWidget = QWidget(self.splitter)
-        self.layoutWidget.setObjectName(u"layoutWidget")
-        self.verticalLayout = QVBoxLayout(self.layoutWidget)
+        self.verticalLayout_2 = QVBoxLayout(self.centralwidget)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.label = QLabel(self.layoutWidget)
+        self.label = QLabel(self.centralwidget)
         self.label.setObjectName(u"label")
 
         self.verticalLayout.addWidget(self.label)
 
-        self.listView = QListView(self.layoutWidget)
+        self.listView = QListView(self.centralwidget)
         self.listView.setObjectName(u"listView")
 
         self.verticalLayout.addWidget(self.listView)
 
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.pushButton_2 = QPushButton(self.layoutWidget)
+        self.pushButton_2 = QPushButton(self.centralwidget)
         self.pushButton_2.setObjectName(u"pushButton_2")
 
         self.horizontalLayout_2.addWidget(self.pushButton_2)
@@ -64,7 +58,7 @@ class Ui_Sentence(object):
 
         self.horizontalLayout_2.addItem(self.horizontalSpacer)
 
-        self.pushButton_3 = QPushButton(self.layoutWidget)
+        self.pushButton_3 = QPushButton(self.centralwidget)
         self.pushButton_3.setObjectName(u"pushButton_3")
 
         self.horizontalLayout_2.addWidget(self.pushButton_3)
@@ -72,23 +66,20 @@ class Ui_Sentence(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout_2)
 
-        self.splitter.addWidget(self.layoutWidget)
-        self.layoutWidget1 = QWidget(self.splitter)
-        self.layoutWidget1.setObjectName(u"layoutWidget1")
-        self.verticalLayout_2 = QVBoxLayout(self.layoutWidget1)
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
+
+        self.verticalLayout_2.addLayout(self.verticalLayout)
+
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.lineEdit = QLineEdit(self.layoutWidget1)
-        self.lineEdit.setObjectName(u"lineEdit")
+        self.lineEdit_sentence = QLineEdit(self.centralwidget)
+        self.lineEdit_sentence.setObjectName(u"lineEdit_sentence")
 
-        self.horizontalLayout.addWidget(self.lineEdit)
+        self.horizontalLayout.addWidget(self.lineEdit_sentence)
 
-        self.pushButton = QPushButton(self.layoutWidget1)
-        self.pushButton.setObjectName(u"pushButton")
+        self.pushButton_sentence_edit = QPushButton(self.centralwidget)
+        self.pushButton_sentence_edit.setObjectName(u"pushButton_sentence_edit")
 
-        self.horizontalLayout.addWidget(self.pushButton)
+        self.horizontalLayout.addWidget(self.pushButton_sentence_edit)
 
 
         self.verticalLayout_2.addLayout(self.horizontalLayout)
@@ -99,14 +90,28 @@ class Ui_Sentence(object):
 
         self.verticalLayout_2.addLayout(self.video_layout)
 
-        self.pushButton_4 = QPushButton(self.layoutWidget1)
-        self.pushButton_4.setObjectName(u"pushButton_4")
+        self.horizontalLayout_3 = QHBoxLayout()
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
-        self.verticalLayout_2.addWidget(self.pushButton_4)
+        self.horizontalLayout_3.addItem(self.horizontalSpacer_3)
 
-        self.splitter.addWidget(self.layoutWidget1)
+        self.spinBox_index = QSpinBox(self.centralwidget)
+        self.spinBox_index.setObjectName(u"spinBox_index")
 
-        self.horizontalLayout_3.addWidget(self.splitter)
+        self.horizontalLayout_3.addWidget(self.spinBox_index)
+
+        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_3.addItem(self.horizontalSpacer_2)
+
+
+        self.verticalLayout_2.addLayout(self.horizontalLayout_3)
+
+        self.pushButton_compute = QPushButton(self.centralwidget)
+        self.pushButton_compute.setObjectName(u"pushButton_compute")
+
+        self.verticalLayout_2.addWidget(self.pushButton_compute)
 
         Sentence.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(Sentence)
@@ -120,9 +125,9 @@ class Ui_Sentence(object):
         Sentence.setStatusBar(self.statusbar)
         QWidget.setTabOrder(self.listView, self.pushButton_2)
         QWidget.setTabOrder(self.pushButton_2, self.pushButton_3)
-        QWidget.setTabOrder(self.pushButton_3, self.lineEdit)
-        QWidget.setTabOrder(self.lineEdit, self.pushButton)
-        QWidget.setTabOrder(self.pushButton, self.pushButton_4)
+        QWidget.setTabOrder(self.pushButton_3, self.lineEdit_sentence)
+        QWidget.setTabOrder(self.lineEdit_sentence, self.pushButton_sentence_edit)
+        QWidget.setTabOrder(self.pushButton_sentence_edit, self.pushButton_compute)
 
         self.menubar.addAction(self.menucoucou.menuAction())
         self.menucoucou.addAction(self.actionNew)
@@ -162,8 +167,8 @@ class Ui_Sentence(object):
         self.label.setText(QCoreApplication.translate("Sentence", u"Sentences", None))
         self.pushButton_2.setText(QCoreApplication.translate("Sentence", u"Add", None))
         self.pushButton_3.setText(QCoreApplication.translate("Sentence", u"Preview", None))
-        self.pushButton.setText(QCoreApplication.translate("Sentence", u"Submit", None))
-        self.pushButton_4.setText(QCoreApplication.translate("Sentence", u"Compute", None))
+        self.pushButton_sentence_edit.setText(QCoreApplication.translate("Sentence", u"Submit", None))
+        self.pushButton_compute.setText(QCoreApplication.translate("Sentence", u"Compute", None))
         self.menucoucou.setTitle(QCoreApplication.translate("Sentence", u"File", None))
     # retranslateUi
 
