@@ -8,7 +8,7 @@ class Project:
         self.name = name
         self.seed = seed
         self.videos = videos
-        self.segment_model = SegmentModel()
+        self.segment_model = SegmentModel(self)
 
     def generate_video(self):
         clips = []
@@ -29,7 +29,7 @@ COLUMN_INDEX_TO_ATTRIBUTE = {0: "sentence", 1: "chosen_combo_index"}
 
 class SegmentModel(QtCore.QAbstractTableModel):
     def __init__(self, project, *args, **kwargs):
-        QtCore.QAbstractTableModel.__init__(*args, **kwargs)
+        QtCore.QAbstractTableModel.__init__(self, *args, **kwargs)
         self.project = project
         self.segments = []
 
@@ -40,7 +40,7 @@ class SegmentModel(QtCore.QAbstractTableModel):
         global GET_PREFIX
         global COLUMN_TO_ATTRIBUTE
 
-        segment = self._get_attribute_from_index(index)
+        segment = self._get_segment_from_index(index)
 
         getter_name = GET_PREFIX + COLUMN_INDEX_TO_ATTRIBUTE[index.column()]
         getter = getattr(segment, getter_name, None)
@@ -51,7 +51,7 @@ class SegmentModel(QtCore.QAbstractTableModel):
         global SET_PREFIX
         global COLUMN_TO_ATTRIBUTE
 
-        segment = self._get_attribute_from_index(index)
+        segment = self._get_segment_from_index(index)
 
         setter_name = SET_PREFIX + COLUMN_INDEX_TO_ATTRIBUTE[index.column()]
         setter = getattr(segment, setter_name, None)
@@ -65,6 +65,9 @@ class SegmentModel(QtCore.QAbstractTableModel):
 
         if role == QtCore.Qt.DecorationRole:
             return self.segments[index.row()].need_analysis
+
+        if role == QtCore.Qt.EditRole:
+            return self._get_attribute_from_index(index)
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         if not index.isValid():
@@ -82,8 +85,8 @@ class SegmentModel(QtCore.QAbstractTableModel):
         return len(self.segments)
 
     def columnCount(self, index):
-        global COLUMN_TO_ATTRIBUTE
-        return len(COLUMN_TO_ATTRIBUTE)
+        global COLUMN_INDEX_TO_ATTRIBUTE
+        return len(COLUMN_INDEX_TO_ATTRIBUTE)
 
     def insertRow(self, position):
         return self.insertRows(position, 1, None)
@@ -94,7 +97,7 @@ class SegmentModel(QtCore.QAbstractTableModel):
         )
 
         for row in range(0, count):
-            self.segments.append(position, Segment(self.project, ""))
+            self.segments.insert(position, Segment(self.project, ""))
 
         self.endInsertRows()
         return True

@@ -7,7 +7,7 @@ from generated.ui_mainwindow import Ui_Sentence
 
 
 class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
-    def __init__(self):
+    def __init__(self, project):
         QtWidgets.QMainWindow.__init__(self)
         Ui_Sentence.__init__(self)
         self.setupUi(self)
@@ -28,6 +28,31 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         self.saved = False
         self.changed = False
+
+        self.project = project
+        self.listView.setModel(project.segment_model)
+
+        self.listView.indexesMoved.connect(self.table_index_change)
+        self.listView.selectionChanged = self.table_index_change
+
+        self.pushButton_add_sentence.clicked.connect(self.add_sentence)
+
+        self.mapper = QtWidgets.QDataWidgetMapper()
+        self.mapper.setSubmitPolicy(QtWidgets.QDataWidgetMapper.ManualSubmit)
+        self.mapper.setModel(project.segment_model)
+        self.mapper.addMapping(self.lineEdit_sentence, 0)
+        self.mapper.addMapping(self.spinBox_index, 1)
+
+        self.pushButton_sentence_edit.clicked.connect(self.edit_sentence)
+
+    def add_sentence(self):
+        self.project.segment_model.insertRow(-1)
+
+    def edit_sentence(self):
+        self.mapper.submit()
+
+    def table_index_change(self, selected, unselected):
+        self.mapper.setCurrentModelIndex(selected.indexes()[0])
 
     def open(self):
         fileName = QtWidgets.QFileDialog.getOpenFileName(
