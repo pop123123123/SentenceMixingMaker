@@ -49,10 +49,10 @@ class Ui_Sentence(object):
 
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.pushButton_2 = QPushButton(self.centralwidget)
-        self.pushButton_2.setObjectName(u"pushButton_2")
+        self.pushButton_add_sentence = QPushButton(self.centralwidget)
+        self.pushButton_add_sentence.setObjectName(u"pushButton_add_sentence")
 
-        self.horizontalLayout_2.addWidget(self.pushButton_2)
+        self.horizontalLayout_2.addWidget(self.pushButton_add_sentence)
 
         self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -123,8 +123,8 @@ class Ui_Sentence(object):
         self.statusbar = QStatusBar(Sentence)
         self.statusbar.setObjectName(u"statusbar")
         Sentence.setStatusBar(self.statusbar)
-        QWidget.setTabOrder(self.listView, self.pushButton_2)
-        QWidget.setTabOrder(self.pushButton_2, self.pushButton_3)
+        QWidget.setTabOrder(self.listView, self.pushButton_add_sentence)
+        QWidget.setTabOrder(self.pushButton_add_sentence, self.pushButton_3)
         QWidget.setTabOrder(self.pushButton_3, self.lineEdit_sentence)
         QWidget.setTabOrder(self.lineEdit_sentence, self.pushButton_sentence_edit)
         QWidget.setTabOrder(self.pushButton_sentence_edit, self.pushButton_compute)
@@ -165,7 +165,7 @@ class Ui_Sentence(object):
         self.actionExport.setShortcut(QCoreApplication.translate("Sentence", u"Ctrl+E", None))
 #endif // QT_CONFIG(shortcut)
         self.label.setText(QCoreApplication.translate("Sentence", u"Sentences", None))
-        self.pushButton_2.setText(QCoreApplication.translate("Sentence", u"Add", None))
+        self.pushButton_add_sentence.setText(QCoreApplication.translate("Sentence", u"Add", None))
         self.pushButton_3.setText(QCoreApplication.translate("Sentence", u"Preview", None))
         self.pushButton_sentence_edit.setText(QCoreApplication.translate("Sentence", u"Submit", None))
         self.pushButton_compute.setText(QCoreApplication.translate("Sentence", u"Compute", None))

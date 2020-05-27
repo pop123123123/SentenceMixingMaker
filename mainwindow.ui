@@ -30,7 +30,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QPushButton" name="pushButton_2">
+         <widget class="QPushButton" name="pushButton_add_sentence">
           <property name="text">
            <string>Add</string>
           </property>
@@ -189,7 +189,7 @@
  </widget>
  <tabstops>
   <tabstop>listView</tabstop>
-  <tabstop>pushButton_2</tabstop>
+  <tabstop>pushButton_add_sentence</tabstop>
   <tabstop>pushButton_3</tabstop>
   <tabstop>lineEdit_sentence</tabstop>
   <tabstop>pushButton_sentence_edit</tabstop>
