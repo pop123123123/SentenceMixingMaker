@@ -1,3 +1,3 @@
 {
-    "files": ["form.ui","main.py","mainwindow.ui"]
+    "files": ["main.py","form.ui","mainwindow.ui","model.py","ui_mainwindow.py","new.ui","controler.py","view/MainWindow.py"]
 }
