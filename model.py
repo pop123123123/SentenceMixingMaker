@@ -4,11 +4,15 @@ import sentence_mixing.sentence_mixer as sm
 
 
 class Project:
-    def __init__(self, name, seed, videos):
+    def __init__(self, name, seed):
         self.name = name
         self.seed = seed
-        self.videos = videos
+        self.videos = None
         self.segment_model = SegmentModel(self)
+
+    def set_videos(self, videos):
+        assert not self.are_videos_ready()
+        self.videos = videos
 
     def generate_video(self):
         clips = []
@@ -20,6 +24,9 @@ class Project:
         raise NotImplementedError()
 
         return final_clip
+
+    def are_videos_ready(self):
+        return self.videos is not None
 
 
 GET_PREFIX = "get_"

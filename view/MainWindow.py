@@ -45,14 +45,43 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         self.pushButton_sentence_edit.clicked.connect(self.edit_sentence)
 
+        self.pushButton_compute.clicked.connect(self.compute_sentence)
+
     def add_sentence(self):
-        self.project.segment_model.insertRow(-1)
+        i = len(self.project.segment_model.segments)
+        self.project.segment_model.insertRow(i)
 
     def edit_sentence(self):
         self.mapper.submit()
 
     def table_index_change(self, selected, unselected):
         self.mapper.setCurrentModelIndex(selected.indexes()[0])
+
+    def compute_sentence(self):
+        if not self.project.are_videos_ready():
+            QtWidgets.QMessageBox.information(
+                self,
+                self.tr("ALERTE"),
+                "Toutes les vidéos n'ont pas été téléchargées ?",
+            )
+        else:
+            try:
+                self.get_selected_segment().analyze()
+                QtWidgets.QMessageBox.information(
+                    self, self.tr("ALERTE"), "Analyse terminée"
+                )
+            except Exception as e:
+                QtWidgets.QMessageBox.information(
+                    self, self.tr("ALERTE"), str(e)
+                )
+
+    def get_selected_index(self):
+        return self.listView.selectionModel().selectedIndexes()[0]
+
+    def get_selected_segment(self):
+        return self.project.segment_model.get_segment_from_index(
+            self.get_selected_index()
+        )
 
     def open(self):
         fileName = QtWidgets.QFileDialog.getOpenFileName(
