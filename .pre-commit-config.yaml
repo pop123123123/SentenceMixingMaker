@@ -6,7 +6,7 @@ repos:
     hooks:
     -   id: black
         language_version: python3
-        exclude: ^generated/
+        exclude: ^ui/generated/
 # Checking if large files are present
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.5.0
@@ -17,15 +17,15 @@ repos:
     rev: 3.7.9
     hooks:
     -   id: flake8
-        exclude: ^generated/
+        exclude: ^ui/generated/
 # Sorting imports (isort)
 -   repo: https://github.com/asottile/seed-isort-config
     rev: v2.1.0
     hooks:
     -   id: seed-isort-config
-        exclude: ^generated/
+        exclude: ^ui/generated/
 -   repo: https://github.com/pre-commit/mirrors-isort
     rev: v4.3.21
     hooks:
     -   id: isort
-        exclude: ^generated/
+        exclude: ^ui/generated/

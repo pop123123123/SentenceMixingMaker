@@ -1,33 +1,6 @@
-import PySide2.Qt as Qt
 import PySide2.QtCore as QtCore
-import sentence_mixing.sentence_mixer as sm
 
-
-class Project:
-    def __init__(self, name, seed):
-        self.name = name
-        self.seed = seed
-        self.videos = None
-        self.segment_model = SegmentModel(self)
-
-    def set_videos(self, videos):
-        assert not self.are_videos_ready()
-        self.videos = videos
-
-    def generate_video(self):
-        clips = []
-        for segment in self.segments:
-            clips.append(segment.generate_clip())
-
-        # TODO: assembler les clips
-        final_clip = clips
-        raise NotImplementedError()
-
-        return final_clip
-
-    def are_videos_ready(self):
-        return self.videos is not None
-
+from data_model.segment import Segment
 
 GET_PREFIX = "get_"
 SET_PREFIX = "set_"
@@ -38,10 +11,9 @@ class SegmentModel(QtCore.QAbstractTableModel):
     def __init__(self, project, *args, **kwargs):
         QtCore.QAbstractTableModel.__init__(self, *args, **kwargs)
         self.project = project
-        self.segments = []
 
     def get_segment_from_index(self, index):
-        return self.segments[index.row()]
+        return self.project.segments[index.row()]
 
     def get_attribute_from_index(self, index):
         global GET_PREFIX
@@ -73,7 +45,7 @@ class SegmentModel(QtCore.QAbstractTableModel):
             return data
 
         if role == QtCore.Qt.DecorationRole:
-            return self.segments[index.row()].need_analysis
+            return self.project.segments[index.row()].need_analysis
 
         if role == QtCore.Qt.EditRole:
             return self.get_attribute_from_index(index)
@@ -84,14 +56,14 @@ class SegmentModel(QtCore.QAbstractTableModel):
 
         if role == QtCore.Qt.EditRole:
             self._set_attribute_from_index(index, value)
-            # self.segments[index] = value
+            # self.project.segments[index] = value
             self.dataChanged.emit(index, index, (QtCore.Qt.EditRole,))
         else:
             return False
         return True
 
     def rowCount(self, index):
-        return len(self.segments)
+        return len(self.project.segments)
 
     def columnCount(self, index):
         global COLUMN_INDEX_TO_ATTRIBUTE
@@ -106,7 +78,7 @@ class SegmentModel(QtCore.QAbstractTableModel):
         )
 
         for row in range(0, count):
-            self.segments.insert(position, Segment(self.project, ""))
+            self.project.segments.insert(position, Segment(self.project, ""))
 
         self.endInsertRows()
         return True
@@ -120,43 +92,7 @@ class SegmentModel(QtCore.QAbstractTableModel):
         )
 
         for row in range(0, count):
-            del self.segments[position]
+            del self.project.segments[position]
 
         self.endRemoveRows()
         return True
-
-
-class Segment:
-    def __init__(self, project, sentence, combos=[]):
-        self.project = project
-        self._sentence = sentence
-        self.combos = combos
-
-        self.need_analysis = True
-        self._current_combo_index = None
-
-    def analyze(self):
-        self.combos = sm.process_sm(
-            self._sentence, self.project.videos, seed=self.project.seed
-        )
-        self.need_analysis = False
-
-    def get_chosen_combo(self):
-        return self.combos[self._current_combo_index]
-
-    def generate_clip(self):
-        raise NotImplementedError()
-
-    def get_sentence(self):
-        return self._sentence
-
-    def get_chosen_combo_index(self):
-        return self._current_combo_index
-
-    def set_sentence(self, new_sentence):
-        self._sentence = new_sentence
-        self.need_analysis = True
-
-    def set_chosen_combo_index(self, chosen_combo_index):
-        self._current_combo_index = chosen_combo_index
-        self.need_analysis = True

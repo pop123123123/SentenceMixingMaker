@@ -6,7 +6,7 @@ from PySide2 import QtCore
 from PySide2.QtWidgets import QApplication
 from sentence_mixing import sentence_mixer
 
-from model import Project
+from data_model.project import Project
 from view.MainWindow import MainWindow
 
 

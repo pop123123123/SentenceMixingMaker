@@ -3,7 +3,8 @@ import os
 
 from PySide2 import QtCore, QtMultimedia, QtMultimediaWidgets, QtWidgets
 
-from generated.ui_mainwindow import Ui_Sentence
+from model_ui.segment_model import SegmentModel
+from ui.generated.ui_mainwindow import Ui_Sentence
 
 
 class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
@@ -30,7 +31,8 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.changed = False
 
         self.project = project
-        self.listView.setModel(project.segment_model)
+        self.segment_model = SegmentModel(project)
+        self.listView.setModel(self.segment_model)
 
         self.listView.indexesMoved.connect(self.table_index_change)
         self.listView.selectionChanged = self.table_index_change
@@ -39,7 +41,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         self.mapper = QtWidgets.QDataWidgetMapper()
         self.mapper.setSubmitPolicy(QtWidgets.QDataWidgetMapper.ManualSubmit)
-        self.mapper.setModel(project.segment_model)
+        self.mapper.setModel(self.segment_model)
         self.mapper.addMapping(self.lineEdit_sentence, 0)
         self.mapper.addMapping(self.spinBox_index, 1)
 
@@ -48,8 +50,8 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.pushButton_compute.clicked.connect(self.compute_sentence)
 
     def add_sentence(self):
-        i = len(self.project.segment_model.segments)
-        self.project.segment_model.insertRow(i)
+        i = len(self.project.segments)
+        self.segment_model.insertRow(i)
 
     def edit_sentence(self):
         self.mapper.submit()
@@ -79,7 +81,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         return self.listView.selectionModel().selectedIndexes()[0]
 
     def get_selected_segment(self):
-        return self.project.segment_model.get_segment_from_index(
+        return self.segment_model.get_segment_from_index(
             self.get_selected_index()
         )
 
