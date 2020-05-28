@@ -31,6 +31,8 @@ class Ui_Sentence(object):
         self.actionSave_as.setObjectName(u"actionSave_as")
         self.actionExport = QAction(Sentence)
         self.actionExport.setObjectName(u"actionExport")
+        self.actionQuit = QAction(Sentence)
+        self.actionQuit.setObjectName(u"actionQuit")
         self.centralwidget = QWidget(Sentence)
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout_2 = QVBoxLayout(self.centralwidget)
@@ -136,6 +138,8 @@ class Ui_Sentence(object):
         self.menucoucou.addAction(self.actionSave_as)
         self.menucoucou.addSeparator()
         self.menucoucou.addAction(self.actionExport)
+        self.menucoucou.addSeparator()
+        self.menucoucou.addAction(self.actionQuit)
 
         self.retranslateUi(Sentence)
 
@@ -163,6 +167,10 @@ class Ui_Sentence(object):
         self.actionExport.setText(QCoreApplication.translate("Sentence", u"Export...", None))
 #if QT_CONFIG(shortcut)
         self.actionExport.setShortcut(QCoreApplication.translate("Sentence", u"Ctrl+E", None))
+#endif // QT_CONFIG(shortcut)
+        self.actionQuit.setText(QCoreApplication.translate("Sentence", u"Quit", None))
+#if QT_CONFIG(shortcut)
+        self.actionQuit.setShortcut(QCoreApplication.translate("Sentence", u"Ctrl+Q", None))
 #endif // QT_CONFIG(shortcut)
         self.label.setText(QCoreApplication.translate("Sentence", u"Sentences", None))
         self.pushButton_add_sentence.setText(QCoreApplication.translate("Sentence", u"Add", None))

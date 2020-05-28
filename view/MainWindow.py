@@ -17,6 +17,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.actionOpen.triggered.connect(self.open)
         self.actionSave_as.triggered.connect(self.save_as)
         self.actionSave.triggered.connect(self.save)
+        self.actionQuit.triggered.connect(self.quit)
 
         self.player = QtMultimedia.QMediaPlayer()
 
@@ -127,3 +128,24 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         if path != "":
             self.project.set_path(path)
             self.save()
+
+    def quit(self):
+        if self.isWindowModified():
+            ret = QtWidgets.QMessageBox.warning(
+                self,
+                self.tr("Quit"),
+                self.tr(
+                    "The document has been modified.\nDo you want to save your changes?"
+                ),
+                QtWidgets.QMessageBox.Save
+                | QtWidgets.QMessageBox.Discard
+                | QtWidgets.QMessageBox.Cancel,
+                QtWidgets.QMessageBox.Save,
+            )
+            if ret == QtWidgets.QMessageBox.Save:
+                self.save()
+            elif ret == QtWidgets.QMessageBox.Discard:
+                pass
+            elif ret == QtWidgets.QMessageBox.Cancel:
+                return
+        QtWidgets.QApplication.quit()
