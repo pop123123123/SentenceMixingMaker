@@ -33,14 +33,14 @@ class SegmentModel(QtCore.QAbstractTableModel):
         self.project = project
         self.segments = []
 
-    def _get_segment_from_index(self, index):
+    def get_segment_from_index(self, index):
         return self.segments[index.row()]
 
-    def _get_attribute_from_index(self, index):
+    def get_attribute_from_index(self, index):
         global GET_PREFIX
         global COLUMN_TO_ATTRIBUTE
 
-        segment = self._get_segment_from_index(index)
+        segment = self.get_segment_from_index(index)
 
         getter_name = GET_PREFIX + COLUMN_INDEX_TO_ATTRIBUTE[index.column()]
         getter = getattr(segment, getter_name, None)
@@ -51,7 +51,7 @@ class SegmentModel(QtCore.QAbstractTableModel):
         global SET_PREFIX
         global COLUMN_TO_ATTRIBUTE
 
-        segment = self._get_segment_from_index(index)
+        segment = self.get_segment_from_index(index)
 
         setter_name = SET_PREFIX + COLUMN_INDEX_TO_ATTRIBUTE[index.column()]
         setter = getattr(segment, setter_name, None)
@@ -60,14 +60,16 @@ class SegmentModel(QtCore.QAbstractTableModel):
 
     def data(self, index, role):
         if role == QtCore.Qt.DisplayRole:
-            return self._get_attribute_from_index(index)
-            # return self.segments[index.row()].sentence
+            data = self.get_attribute_from_index(index)
+            if data == "":
+                return "<Empty>"
+            return data
 
         if role == QtCore.Qt.DecorationRole:
             return self.segments[index.row()].need_analysis
 
         if role == QtCore.Qt.EditRole:
-            return self._get_attribute_from_index(index)
+            return self.get_attribute_from_index(index)
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         if not index.isValid():
