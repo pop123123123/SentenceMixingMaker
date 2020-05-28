@@ -2,13 +2,13 @@ import sentence_mixing.sentence_mixer as sm
 
 
 class Segment:
-    def __init__(self, project, sentence, combos=[]):
+    def __init__(self, project, sentence, current_combo_index=None, combos=[]):
         self.project = project
         self._sentence = sentence
         self.combos = combos
 
         self.need_analysis = True
-        self._current_combo_index = None
+        self._current_combo_index = current_combo_index
 
     def analyze(self):
         self.combos = sm.process_sm(

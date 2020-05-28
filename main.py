@@ -1,6 +1,5 @@
 # This Python file uses the following encoding: utf-8
 import sys
-import traceback
 
 from PySide2 import QtCore
 from PySide2.QtWidgets import QApplication
@@ -42,7 +41,9 @@ if __name__ == "__main__":
 
     vids = ["https://www.youtube.com/watch?v=_ZZ8oyZUGn8"]
 
-    project = Project("yo", 0)
+    project = Project(
+        "/tmp/lol", 0, ["https://www.youtube.com/watch?v=_ZZ8oyZUGn8"]
+    )
 
     def print_output(videos):
         project.set_videos(videos)

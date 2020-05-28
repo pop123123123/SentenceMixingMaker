@@ -143,7 +143,7 @@ class Ui_Sentence(object):
     # setupUi
 
     def retranslateUi(self, Sentence):
-        Sentence.setWindowTitle(QCoreApplication.translate("Sentence", u"Sentence", None))
+        Sentence.setWindowTitle(QCoreApplication.translate("Sentence", u"Sentence Mixing Maker[*]", None))
         self.actionNew.setText(QCoreApplication.translate("Sentence", u"New...", None))
 #if QT_CONFIG(shortcut)
         self.actionNew.setShortcut(QCoreApplication.translate("Sentence", u"Ctrl+N", None))
