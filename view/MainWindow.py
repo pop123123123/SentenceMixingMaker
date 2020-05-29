@@ -2,6 +2,7 @@
 import os
 
 from PySide2 import QtCore, QtMultimedia, QtMultimediaWidgets, QtWidgets
+from sentence_mixing.video_creator.video import create_video_file
 
 from data_model.project import load_project
 from model_ui.segment_model import SegmentModel
@@ -23,6 +24,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.player = QtMultimedia.QMediaPlayer()
 
         self.playlist = QtMultimedia.QMediaPlaylist(self.player)
+        self.playlist.setPlaybackMode(self.playlist.Loop)
         self.playlist.addMedia(QtCore.QUrl("file:/tmp/out.mp4"))
 
         self.videoWidget = QtMultimediaWidgets.QVideoWidget()
@@ -41,6 +43,8 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.pushButton_sentence_edit.clicked.connect(self.edit_sentence)
 
         self.pushButton_compute.clicked.connect(self.compute_sentence)
+
+        self.spinBox_index.valueChanged.connect(self.generate_combo_preview)
 
         self.threadpool = QtCore.QThreadPool()
 
@@ -80,15 +84,13 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             try:
                 segment = self.get_selected_segment()
 
-                def compute_done(combos):
-                    segment.set_combos(combos)
-
+                def compute_done():
                     QtWidgets.QMessageBox.information(
                         self, self.tr("ALERTE"), "Analyse terminée"
                     )
 
                 worker = Worker(segment.analyze)
-                worker.signals.result.connect(compute_done)
+                worker.signals.finished.connect(compute_done)
                 self.threadpool.start(worker)
 
             except Exception as e:
@@ -103,6 +105,25 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         return self.segment_model.get_segment_from_index(
             self.get_selected_index()
         )
+
+    def play_combo_preview(self):
+        path = os.path.abspath("out.mp4")
+        url = QtCore.QUrl("file://" + path)
+
+        self.playlist.clear()
+        self.playlist.addMedia(url)
+        self.player.play()
+
+    def generate_combo_preview(self):
+        self.playlist.clear()
+
+        segment = self.get_selected_segment()
+        combo = segment.combos[self.spinBox_index.value()]
+        phonems = combo.get_audio_phonems()
+
+        worker = Worker(create_video_file, phonems, "out.mp4")
+        worker.signals.finished.connect(self.play_combo_preview)
+        self.threadpool.start(worker)
 
     def closeEvent(self, event):
         if self.wants_to_quit():
