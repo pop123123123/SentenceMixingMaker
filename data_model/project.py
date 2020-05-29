@@ -50,7 +50,7 @@ class Project:
         self.videos = videos
 
     def set_path(self, path):
-        if not path.endswith(".p00p"):
+        if path is not None and not path.endswith(".p00p"):
             path += ".p00p"
         self.path = path
 
