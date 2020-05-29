@@ -92,6 +92,12 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.get_selected_index()
         )
 
+    def closeEvent(self, event):
+        if self.wants_to_quit():
+            event.accept()
+        else:
+            event.ignore()
+
     def open(self):
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
             self,
@@ -132,7 +138,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.project.set_path(path)
             self._save()
 
-    def quit(self):
+    def wants_to_quit(self):
         if self.isWindowModified():
             ret = QtWidgets.QMessageBox.warning(
                 self,
@@ -150,5 +156,9 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             elif ret == QtWidgets.QMessageBox.Discard:
                 pass
             elif ret == QtWidgets.QMessageBox.Cancel:
-                return
-        QtWidgets.QApplication.quit()
+                return False
+        return True
+
+    def quit(self):
+        if self.wants_to_quit():
+            QtWidgets.QApplication.quit()
