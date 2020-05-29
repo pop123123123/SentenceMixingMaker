@@ -3,9 +3,10 @@ import os
 
 from PySide2 import QtCore, QtMultimedia, QtMultimediaWidgets, QtWidgets
 
-from data_model.project import load_project
+from data_model.project import Project, load_project
 from model_ui.segment_model import SegmentModel
 from ui.generated.ui_mainwindow import Ui_Sentence
+from view.NewProjectDialog import NewProjectDialog
 
 
 class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
@@ -14,6 +15,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         Ui_Sentence.__init__(self)
         self.setupUi(self)
 
+        self.actionNew.triggered.connect(self.new)
         self.actionOpen.triggered.connect(self.open)
         self.actionSave_as.triggered.connect(self.save_as)
         self.actionSave.triggered.connect(self.save)
@@ -98,6 +100,12 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         else:
             event.ignore()
 
+    def new(self):
+        findDialog = NewProjectDialog(self)
+        seed, urls = findDialog.get_project_settings()
+        self.open_project(Project(None, seed, urls))
+        self.setWindowModified(False)
+
     def open(self):
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
             self,
@@ -114,7 +122,9 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             )
 
     def save(self):
-        if self.isWindowModified():
+        if self.project.path is None:
+            self.save_as()
+        elif self.isWindowModified():
             self._save()
 
     def _save(self):
