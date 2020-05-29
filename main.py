@@ -28,14 +28,7 @@ if __name__ == "__main__":
 
     vids = ["https://www.youtube.com/watch?v=_ZZ8oyZUGn8"]
 
-    project = Project(
-        "/tmp/lol",
-        0,
-        [
-            "https://www.youtube.com/watch?v=_ZZ8oyZUGn8",
-            "https://www.youtube.com/watch?v=-rTBodCtBAM",
-        ],
-    )
+    project = Project("/tmp/lol", 0, [vids],)
 
     sentence_mixer.prepare_sm(
         "/home/nicolas/Documents/Trucs/sentence_mixing_maker/config/config.json"

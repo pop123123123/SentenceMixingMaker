@@ -27,7 +27,6 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         self.playlist = QtMultimedia.QMediaPlaylist(self.player)
         self.playlist.setPlaybackMode(self.playlist.Loop)
-        self.playlist.addMedia(QtCore.QUrl("file:/tmp/out.mp4"))
 
         self.videoWidget = QtMultimediaWidgets.QVideoWidget()
         self.player.setVideoOutput(self.videoWidget)
