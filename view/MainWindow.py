@@ -104,6 +104,12 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.get_selected_index()
         )
 
+    def closeEvent(self, event):
+        if self.wants_to_quit():
+            event.accept()
+        else:
+            event.ignore()
+
     def open(self):
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
             self,
@@ -121,13 +127,16 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
     def save(self):
         if self.isWindowModified():
-            try:
-                self.project.save()
-                self.setWindowModified(False)
-            except EnvironmentError as e:
-                QtWidgets.QMessageBox.information(
-                    self, self.tr("Unable to open file"), e.args[0],
-                )
+            self._save()
+
+    def _save(self):
+        try:
+            self.project.save()
+            self.setWindowModified(False)
+        except EnvironmentError as e:
+            QtWidgets.QMessageBox.information(
+                self, self.tr("Unable to open file"), e.args[0],
+            )
 
     def save_as(self):
         path, _ = QtWidgets.QFileDialog.getSaveFileName(
@@ -139,9 +148,9 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         print(path)
         if path != "":
             self.project.set_path(path)
-            self.save()
+            self._save()
 
-    def quit(self):
+    def wants_to_quit(self):
         if self.isWindowModified():
             ret = QtWidgets.QMessageBox.warning(
                 self,
@@ -159,5 +168,9 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             elif ret == QtWidgets.QMessageBox.Discard:
                 pass
             elif ret == QtWidgets.QMessageBox.Cancel:
-                return
-        QtWidgets.QApplication.quit()
+                return False
+        return True
+
+    def quit(self):
+        if self.wants_to_quit():
+            QtWidgets.QApplication.quit()
