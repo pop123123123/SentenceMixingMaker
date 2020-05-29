@@ -109,13 +109,16 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
     def save(self):
         if self.isWindowModified():
-            try:
-                self.project.save()
-                self.setWindowModified(False)
-            except EnvironmentError as e:
-                QtWidgets.QMessageBox.information(
-                    self, self.tr("Unable to open file"), e.args[0],
-                )
+            self._save()
+
+    def _save(self):
+        try:
+            self.project.save()
+            self.setWindowModified(False)
+        except EnvironmentError as e:
+            QtWidgets.QMessageBox.information(
+                self, self.tr("Unable to open file"), e.args[0],
+            )
 
     def save_as(self):
         path, _ = QtWidgets.QFileDialog.getSaveFileName(
@@ -127,7 +130,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         print(path)
         if path != "":
             self.project.set_path(path)
-            self.save()
+            self._save()
 
     def quit(self):
         if self.isWindowModified():
