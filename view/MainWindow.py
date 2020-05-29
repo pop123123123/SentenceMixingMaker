@@ -6,6 +6,7 @@ from PySide2 import QtCore, QtMultimedia, QtMultimediaWidgets, QtWidgets
 from data_model.project import load_project
 from model_ui.segment_model import SegmentModel
 from ui.generated.ui_mainwindow import Ui_Sentence
+from worker import Worker, WorkerSignals
 
 
 class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
@@ -41,6 +42,8 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         self.pushButton_compute.clicked.connect(self.compute_sentence)
 
+        self.threadpool = QtCore.QThreadPool()
+
     def open_project(self, project):
         self.project = project
         self.segment_model = SegmentModel(project)
@@ -75,10 +78,19 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             )
         else:
             try:
-                self.get_selected_segment().analyze()
-                QtWidgets.QMessageBox.information(
-                    self, self.tr("ALERTE"), "Analyse terminée"
-                )
+                segment = self.get_selected_segment()
+
+                def compute_done(combos):
+                    segment.set_combos(combos)
+
+                    QtWidgets.QMessageBox.information(
+                        self, self.tr("ALERTE"), "Analyse terminée"
+                    )
+
+                worker = Worker(segment.analyze)
+                worker.signals.result.connect(compute_done)
+                self.threadpool.start(worker)
+
             except Exception as e:
                 QtWidgets.QMessageBox.information(
                     self, self.tr("ALERTE"), str(e)

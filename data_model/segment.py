@@ -35,3 +35,6 @@ class Segment:
     def set_chosen_combo_index(self, chosen_combo_index):
         self._current_combo_index = chosen_combo_index
         self.need_analysis = True
+
+    def set_combos(self, combos):
+        self.combos = combos
