@@ -50,7 +50,11 @@ class VideoAssemblerLogger(ProgressBarLogger):
         self._check_for_interruption()
 
         if "message" in changes.keys():
-            self.signals.update_message.emit(changes["message"])
+            # Provides convenient printing
+            message = changes["message"]
+            message = " ".join(message.split(" ")[2:4])
+
+            self.signals.update_message.emit(message)
 
     def bars_callback(self, bar, attr, value, old_value=None):
         """Called everytime a new step is reached"""
