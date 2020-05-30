@@ -43,6 +43,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.pushButton_compute.clicked.connect(self.compute_sentence)
 
         self.spinBox_index.valueChanged.connect(self.generate_combo_preview)
+        self.previewer = None
         self.threadpool = QtCore.QThreadPool()
 
     def open_project(self, project):
@@ -106,8 +107,12 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
     def generate_combo_preview(self):
         segment = self.get_selected_segment()
         combo = segment.combos[self.spinBox_index.value()]
-        self.prev = preview.Previewer(combo, self.pixmap, self.graphicsView)
-        self.prev.run()
+        if self.previewer is not None:
+            self.previewer.stop()
+        self.previewer = preview.Previewer(
+            combo, self.pixmap, self.graphicsView
+        )
+        self.previewer.run()
 
     def closeEvent(self, event):
         if self.wants_to_quit():
