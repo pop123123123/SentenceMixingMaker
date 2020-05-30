@@ -1,4 +1,5 @@
 # import threading
+import numpy as np
 from moviepy.editor import concatenate_videoclips
 from PySide2 import QtCore, QtGui, QtMultimedia
 from sentence_mixing.video_creator.audio import concat_segments
@@ -6,8 +7,6 @@ from sentence_mixing.video_creator.audio import concat_segments
 
 def imdisplay(frame, pixmap):
     """Splashes the given image array on the given pygame screen """
-    frame = frame[::4, ::4].copy(order="C")
-
     qimg = QtGui.QImage(
         frame, frame.shape[1], frame.shape[0], QtGui.QImage.Format_BGR888
     )
@@ -25,7 +24,7 @@ def get_format(rate, wave):
 
 
 class Previewer:
-    def __init__(self, combo, pixmap, graphics_view, fps=5):
+    def __init__(self, combo, pixmap, graphics_view, loop=False, fps=15):
         self.clip = concatenate_videoclips(
             [phonem.get_video_clip() for phonem in combo.get_audio_phonems()]
         )
@@ -38,9 +37,11 @@ class Previewer:
         self.audio_output = QtMultimedia.QAudioOutput(
             self.audio_format, graphics_view
         )
+        self.audio_output.stateChanged.connect(self.audio_state_handler)
 
         self.pixmap = pixmap
         self.graphics_view = graphics_view
+        self.loop = loop
 
         self.fps = fps
 
@@ -50,6 +51,11 @@ class Previewer:
         self.t = 0
         self.period_ms = 1.0 / fps
 
+        self.frames = [
+            self.clip.get_frame(t)[::4, ::4].copy(order="C")
+            for t in np.arange(0, self.clip.duration, self.period_ms)
+        ]
+
     def run(self):
         self.timer.start(self.period_ms * 1000)
 
@@ -57,7 +63,7 @@ class Previewer:
         self.audio_input.open(QtCore.QIODevice.ReadOnly)
         self.audio_output.start(self.audio_input)
 
-        imdisplay(self.clip.get_frame(0), self.pixmap)
+        self.display_frame()
         self.graphics_view.fitInView(self.pixmap, QtCore.Qt.KeepAspectRatio)
 
     def stop(self):
@@ -65,9 +71,27 @@ class Previewer:
         self.audio_output.stop()
         self.audio_input.close()
 
+    def prepare_next_frame(self):
+        frame = self.clip.get_frame(self.t)
+        self.frame = frame[::4, ::4].copy(order="C")
+
+    def display_frame(self):
+        imdisplay(self.frames[self.t], self.pixmap)
+
+    def audio_state_handler(self, state):
+        if state == QtMultimedia.QAudio.IdleState and self.loop:
+            self.audio_input.close()
+            self.audio_input = QtCore.QBuffer(self.data)
+            self.audio_input.open(QtCore.QIODevice.ReadWrite)
+            self.audio_output.start(self.audio_input)
+
     def update_frame(self):
-        self.t += self.period_ms
-        if self.clip.duration <= self.t:
-            self.stop()
+        self.t += 1
+        if self.t >= len(self.frames):
+            if self.loop:
+                self.t = 0
+                self.display_frame()
+            else:
+                self.stop()
         else:
-            imdisplay(self.clip.get_frame(self.t), self.pixmap)
+            self.display_frame()

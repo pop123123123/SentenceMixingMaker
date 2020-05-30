@@ -110,7 +110,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         if self.previewer is not None:
             self.previewer.stop()
         self.previewer = preview.Previewer(
-            combo, self.pixmap, self.graphicsView
+            combo, self.pixmap, self.graphicsView, True
         )
         self.previewer.run()
 
