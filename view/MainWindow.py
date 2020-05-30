@@ -21,6 +21,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.actionOpen.triggered.connect(self.open)
         self.actionSave_as.triggered.connect(self.save_as)
         self.actionSave.triggered.connect(self.save)
+        self.actionExport.triggered.connect(self.export)
         self.actionQuit.triggered.connect(self.quit)
 
         self.player = QtMultimedia.QMediaPlayer()
@@ -182,6 +183,32 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         if path != "":
             self.project.set_path(path)
             self._save()
+
+    def collect_combos(self):
+        if not self.project.segments:
+            raise Exception("No segment found")
+
+        phonems = []
+        for segment in self.project.segments:
+            if not segment.combos:
+                raise Exception("A segment have not been analyzed")
+            combo = segment.get_chosen_combo()
+
+            phonems.extend(combo.get_audio_phonems())
+
+        return phonems
+
+    def export(self):
+        path, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self,
+            self.tr("Export p00p project"),
+            None,
+            self.tr("mp4 video (*.mp4);;All Files (*)"),
+        )
+        if path != "":
+            phonems = self.collect_combos()
+            create_video_file(phonems, path)
+            # TODO: ecran de progression
 
     def wants_to_quit(self):
         if self.isWindowModified():
