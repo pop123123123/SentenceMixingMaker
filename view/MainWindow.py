@@ -9,7 +9,7 @@ from model_ui.segment_model import SegmentModel
 from ui.generated.ui_mainwindow import Ui_Sentence
 from view import preview
 from view.NewProjectDialog import NewProjectDialog
-from worker import Worker, WorkerSignals
+from worker import AnalyzeWorker, Worker, WorkerSignals
 
 
 class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
@@ -70,30 +70,30 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         else:
             self.mapper.setCurrentIndex(-1)
 
+    def pop_error_box(self, message):
+        print(message)
+        QtWidgets.QMessageBox.information(
+            self, self.tr("ALERTE"), message,
+        )
+
     def compute_sentence(self):
         if not self.project.are_videos_ready():
-            QtWidgets.QMessageBox.information(
-                self,
-                self.tr("ALERTE"),
-                "Toutes les vidéos n'ont pas été téléchargées ?",
+            self.pop_error_box(
+                "Toutes les vidéos n'ont pas été téléchargées ?"
             )
         else:
             try:
                 segment = self.get_selected_segment()
-
-                def compute_done():
-                    QtWidgets.QMessageBox.information(
-                        self, self.tr("ALERTE"), "Analyse terminée"
-                    )
-
-                worker = Worker(segment.analyze)
-                worker.signals.finished.connect(compute_done)
-                self.threadpool.start(worker)
-
             except Exception as e:
-                QtWidgets.QMessageBox.information(
-                    self, self.tr("ALERTE"), str(e)
-                )
+                self.pop_error_box(str(e))
+
+            def compute_done():
+                self.pop_error_box("Analyse terminée")
+
+            worker = AnalyzeWorker(segment)
+            worker.signals.finished.connect(compute_done)
+            worker.signals.error.connect(self.pop_error_box)
+            self.threadpool.start(worker)
 
     def get_selected_index(self):
         return self.listView.selectionModel().selectedIndexes()[0]

@@ -10,9 +10,12 @@ class Segment:
         self.need_analysis = True
         self._current_combo_index = current_combo_index
 
-    def analyze(self):
+    def analyze(self, interrupt_callback):
         self.combos = sm.process_sm(
-            self._sentence, self.project.videos, seed=self.project.seed
+            self._sentence,
+            self.project.videos,
+            seed=self.project.seed,
+            interrupt_callback=interrupt_callback,
         )
         self.need_analysis = False
 
