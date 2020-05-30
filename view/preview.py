@@ -34,19 +34,12 @@ class Previewer:
         self.audio_format = get_format(rate, wave)
         self.data = QtCore.QByteArray(wave.tobytes(order="C"))
         self.audio_input = QtCore.QBuffer(self.data)
-        self.audio_output = QtMultimedia.QAudioOutput(
-            self.audio_format, graphics_view
-        )
-        self.audio_output.stateChanged.connect(self.audio_state_handler)
 
         self.pixmap = pixmap
         self.graphics_view = graphics_view
         self.loop = loop
 
         self.fps = fps
-
-        self.timer = QtCore.QTimer(self.graphics_view)
-        self.timer.timeout.connect(self.update_frame)
 
         self.t = 0
         self.period_ms = 1.0 / fps
@@ -57,6 +50,13 @@ class Previewer:
         ]
 
     def run(self):
+        self.audio_output = QtMultimedia.QAudioOutput(
+            self.audio_format, self.graphics_view
+        )
+        self.audio_output.stateChanged.connect(self.audio_state_handler)
+        self.timer = QtCore.QTimer(self.graphics_view)
+        self.timer.timeout.connect(self.update_frame)
+
         self.timer.start(self.period_ms * 1000)
 
         # start audio streaming

@@ -42,8 +42,9 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         self.pushButton_compute.clicked.connect(self.compute_sentence)
 
-        self.spinBox_index.valueChanged.connect(self.generate_combo_preview)
+        self.spinBox_index.valueChanged.connect(self.preview_combo)
         self.previewer = None
+        self.previewers = {}
         self.threadpool = QtCore.QThreadPool()
 
     def open_project(self, project):
@@ -82,19 +83,25 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.pop_error_box(
                 "Toutes les vidéos n'ont pas été téléchargées ?"
             )
-        else:
-            try:
-                segment = self.get_selected_segment()
-            except Exception as e:
-                self.pop_error_box(str(e))
+            return
+        try:
+            segment = self.get_selected_segment()
+        except Exception as e:
+            self.pop_error_box(str(e))
+            return
 
-            def compute_done():
-                self.pop_error_box("Analyse terminée")
+        for k in list(self.previewers.keys()):
+            if k[0] == segment:
+                self.previewers.pop(k)
 
-            worker = AnalyzeWorker(segment)
-            worker.signals.finished.connect(compute_done)
-            worker.signals.error.connect(self.pop_error_box)
-            self.threadpool.start(worker)
+        def compute_done():
+            self.pop_error_box("Analyse terminée")
+            self.generate_combo_previews(segment, range(10))
+
+        worker = AnalyzeWorker(segment)
+        worker.signals.finished.connect(compute_done)
+        worker.signals.error.connect(self.pop_error_box)
+        self.threadpool.start(worker)
 
     def get_selected_index(self):
         return self.listView.selectionModel().selectedIndexes()[0]
@@ -104,15 +111,35 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.get_selected_index()
         )
 
-    def generate_combo_preview(self):
-        segment = self.get_selected_segment()
-        combo = segment.combos[self.spinBox_index.value()]
+    def preview_combo(self):
         if self.previewer is not None:
             self.previewer.stop()
-        self.previewer = preview.Previewer(
-            combo, self.pixmap, self.graphicsView, True
-        )
+        i = self.spinBox_index.value()
+        seg = self.get_selected_segment()
+        if (seg, i) not in self.previewers:
+            self.generate_combo_previews(seg, [i], False)
+            self.generate_combo_previews(seg, range(i + 1, i + 11))
+        self.previewer = self.previewers[(seg, i)]
         self.previewer.run()
+
+    def generate_combo_previews(self, segment, indices, use_worker=True):
+        for i in indices:
+            if (segment, i) in self.previewers:
+                self.previewers[(segment, i)].stop()
+        if use_worker:
+            w = Worker(self._generate_combo_previews, segment, indices)
+            w.signals.error.connect(print)
+            self.threadpool.start(w)
+        else:
+            self._generate_combo_previews(segment, indices)
+
+    def _generate_combo_previews(self, segment, indices):
+        for i in indices:
+            combo = segment.combos[i]
+            self.previewers[(segment, i)] = preview.Previewer(
+                combo, self.pixmap, self.graphicsView, True
+            )
+            print(f"generated {i}")
 
     def closeEvent(self, event):
         if self.wants_to_quit():
