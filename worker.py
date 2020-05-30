@@ -26,6 +26,9 @@ class Worker(QtCore.QRunnable):
         # Retrieve args/kwargs here; and fire processing using them
         try:
             result = self.fn(*self.args, **self.kwargs)
+
+            if self.should_be_interrupted():
+                raise Interruption(self.should_be_interrupted)
         except Interruption:
             self.signals.error.emit("Thread interrupted")
         except Exception as e:

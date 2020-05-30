@@ -1,9 +1,11 @@
 # This Python file uses the following encoding: utf-8
 import os
+from pathlib import Path
 
 from PySide2 import QtCore, QtGui, QtMultimedia, QtMultimediaWidgets, QtWidgets
 from sentence_mixing.video_creator.video import create_video_file
 
+import view.video_assembly as video_assembly
 from data_model.project import Project, load_project
 from model_ui.segment_model import SegmentModel
 from ui.generated.ui_mainwindow import Ui_Sentence
@@ -22,6 +24,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.actionOpen.triggered.connect(self.open)
         self.actionSave_as.triggered.connect(self.save_as)
         self.actionSave.triggered.connect(self.save)
+        self.actionExport.triggered.connect(self.export)
         self.actionQuit.triggered.connect(self.quit)
 
         self.graphicsView = QtWidgets.QGraphicsView()
@@ -62,6 +65,9 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.setWindowModified(True)
         i = len(self.project.segments)
         self.segment_model.insertRow(i)
+
+        index = self.segment_model.createIndex(i, 0)
+        self.listView.setCurrentIndex(index)
 
     def edit_sentence(self):
         self.mapper.submit()
@@ -194,6 +200,61 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         if path != "":
             self.project.set_path(path)
             self._save()
+
+    def collect_combos(self, strict=True):
+        if strict and not self.project.segments:
+            raise Exception("No segment found")
+
+        phonems = []
+        for segment in self.project.segments:
+            if not segment.combos:
+                if strict:
+                    raise Exception("A segment have not been analyzed")
+            else:
+                combo = segment.get_chosen_combo()
+                phonems.extend(combo.get_audio_phonems())
+
+        return phonems
+
+    def export(self):
+        path, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self,
+            self.tr("Export p00p project"),
+            None,
+            self.tr("mp4 video (*.mp4);;All Files (*)"),
+        )
+
+        if path == "":
+            self.pop_error_box("Path is empty")
+            return
+
+        if Path(path).suffix != ".mp4":
+            self.pop_error_box("Exported file must have '.mp4' extension")
+            return
+
+        # Retrieves phonems of all segments
+        phonems = self.collect_combos(strict=True)
+
+        # Progress bar dialog widget
+        progress = video_assembly.VideoAssemblerProgressDialog(self)
+
+        # Logging interface sending updates to progress bar (thread tolerant)
+        logger = video_assembly.VideoAssemblerLogger(progress)
+
+        # Thread executing video assembly
+        worker = Worker(create_video_file, phonems, path, logger=logger)
+
+        # Adding interruption system related to worker
+        # When the user presses cancel button of the dialog, interruption boolean will be set to
+        # True and video assembly will be canceled
+        logger.set_interruption_callback(worker.should_be_interrupted)
+        progress.canceled.connect(worker.interrupt)
+
+        progress.open()
+
+        worker.signals.finished.connect(progress.close)
+        worker.signals.error.connect(self.pop_error_box)
+        self.threadpool.start(worker)
 
     def wants_to_quit(self):
         if self.isWindowModified():
