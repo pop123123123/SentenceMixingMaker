@@ -65,6 +65,9 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         i = len(self.project.segments)
         self.segment_model.insertRow(i)
 
+        index = self.segment_model.createIndex(i, 0)
+        self.listView.setCurrentIndex(index)
+
     def edit_sentence(self):
         self.mapper.submit()
 
