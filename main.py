@@ -44,6 +44,4 @@ if __name__ == "__main__":
     window = MainWindow(project)
     window.show()
 
-    window.player.play()
-
     sys.exit(app.exec_())
