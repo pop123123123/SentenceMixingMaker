@@ -186,7 +186,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.project.set_path(path)
             self._save()
 
-    def collect_combos(self, strict):
+    def collect_combos(self, strict=True):
         if strict and not self.project.segments:
             raise Exception("No segment found")
 
@@ -217,11 +217,23 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.pop_error_box("Exported file must have '.mp4' extension")
             return
 
-        phonems = self.collect_combos(True)
+        # Retrieves phonems of all segments
+        phonems = self.collect_combos(strict=True)
 
+        # Progress bar dialog widget
         progress = video_assembly.VideoAssemblerProgressDialog(self)
+
+        # Logging interface sending updates to progress bar (thread tolerant)
         logger = video_assembly.VideoAssemblerLogger(progress)
+
+        # Thread executing video assembly
         worker = Worker(create_video_file, phonems, path, logger=logger)
+
+        # Adding interruption system related to worker
+        # When the user presses cancel button of the dialog, interruption boolean will be set to
+        # True and video assembly will be canceled
+        logger.set_interruption_callback(worker.should_be_interrupted)
+        progress.canceled.connect(worker.interrupt)
 
         progress.open()
 
