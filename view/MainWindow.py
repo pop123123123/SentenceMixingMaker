@@ -51,6 +51,10 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.previewers = {}
         self.threadpool = QtCore.QThreadPool()
 
+        # Change buttons when data changed or new segment selected
+        self.mapper.currentIndexChanged.connect(self.update_buttons)
+        self.segment_model.dataChanged.connect(self.update_buttons)
+
     def open_project(self, project):
         self.project = project
         self.segment_model = SegmentModel(project)
@@ -61,6 +65,17 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.mapper.setSubmitPolicy(QtWidgets.QDataWidgetMapper.ManualSubmit)
         self.mapper.addMapping(self.lineEdit_sentence, 0)
         self.mapper.addMapping(self.spinBox_index, 1)
+
+    def update_buttons(self, *args):
+        selected_segment = self.get_selected_segment()
+
+        if (
+            selected_segment
+            and selected_segment.analysis_state == AnalysisState.NEED_ANALYSIS
+        ):
+            self.pushButton_compute.setEnabled(True)
+        else:
+            self.pushButton_compute.setEnabled(False)
 
     def add_sentence(self):
         self.setWindowModified(True)
