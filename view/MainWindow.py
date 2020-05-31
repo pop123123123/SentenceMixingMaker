@@ -7,6 +7,7 @@ from sentence_mixing.video_creator.video import create_video_file
 
 import view.video_assembly as video_assembly
 from data_model.project import Project, load_project
+from data_model.segment import AnalysisState
 from model_ui.segment_model import SegmentModel
 from ui.generated.ui_mainwindow import Ui_Sentence
 from view import preview
@@ -36,7 +37,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.mapper = QtWidgets.QDataWidgetMapper()
         self.open_project(project)
 
-        self.listView.indexesMoved.connect(self.table_index_change)
+        # self.listView.indexesMoved.connect(self.table_index_change)
         self.listView.selectionChanged = self.table_index_change
 
         self.pushButton_add_sentence.clicked.connect(self.add_sentence)
@@ -68,8 +69,18 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         index = self.segment_model.createIndex(i, 0)
         self.listView.setCurrentIndex(index)
 
+    def set_analysis_state_from_row_index(self, index, state):
+        index_column_analysis = index.sibling(index.row(), 2)
+        self.segment_model.setData(
+            index_column_analysis, state, QtCore.Qt.EditRole
+        )
+
     def edit_sentence(self):
         self.mapper.submit()
+
+        self.set_analysis_state_from_row_index(
+            self.get_selected_index(), AnalysisState.NEED_ANALYSIS
+        )
 
     def table_index_change(self, selected, unselected):
         if len(selected.indexes()) > 0:
@@ -90,6 +101,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             )
             return
         try:
+            index = self.get_selected_index()
             segment = self.get_selected_segment()
         except Exception as e:
             self.pop_error_box(str(e))
@@ -99,15 +111,25 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.previewer.stop()
         preview.previewManager.cancel(segment)
 
-        def compute_done():
+        def compute_done(_):
             preview.previewManager.compute_previews(
                 self.threadpool, segment.combos[:10]
             )
-            self.pop_error_box("Analyse terminée")
+            self.set_analysis_state_from_row_index(
+                index, AnalysisState.ANALYZED
+            )
+
+        def compute_error(err):
+            self.set_analysis_state_from_row_index(
+                index, AnalysisState.NEED_ANALYSIS
+            )
+            self.pop_error_box(err)
+
+        self.set_analysis_state_from_row_index(index, AnalysisState.ANALYZING)
 
         worker = AnalyzeWorker(segment)
-        worker.signals.finished.connect(compute_done)
-        worker.signals.error.connect(self.pop_error_box)
+        worker.signals.result.connect(compute_done)
+        worker.signals.error.connect(compute_error)
         self.threadpool.start(worker)
 
     def get_selected_index(self):

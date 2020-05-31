@@ -1,10 +1,15 @@
 import PySide2.QtCore as QtCore
+import PySide2.QtGui as QtGui
 
-from data_model.segment import Segment
+from data_model.segment import AnalysisState, Segment
 
 GET_PREFIX = "get_"
 SET_PREFIX = "set_"
-COLUMN_INDEX_TO_ATTRIBUTE = {0: "sentence", 1: "chosen_combo_index"}
+COLUMN_INDEX_TO_ATTRIBUTE = {
+    0: "sentence",
+    1: "chosen_combo_index",
+    2: "analysis_state",
+}
 
 
 class SegmentModel(QtCore.QAbstractTableModel):
@@ -37,27 +42,57 @@ class SegmentModel(QtCore.QAbstractTableModel):
 
         return setter(new_value)
 
+    def _formatted_data(self, index):
+        data = self.get_attribute_from_index(index)
+        column = index.column()
+        if column == 1:
+            data = str(data)
+        elif column == 2:
+            data = str(data)
+
+        return data
+
     def data(self, index, role):
+        data = self.get_attribute_from_index(index)
+
         if role == QtCore.Qt.DisplayRole:
-            data = self.get_attribute_from_index(index)
-            if data == "":
-                return "<Empty>"
-            return data
+            if index.column() == 0 and data == "":
+                data = "<Empty>"
+            return str(data)
 
         if role == QtCore.Qt.DecorationRole:
-            return self.project.segments[index.row()].need_analysis
+            if index.column() == 0:
+                segment = self.get_segment_from_index(index)
+                if segment.analysis_state == AnalysisState.NEED_ANALYSIS:
+                    return QtGui.QIcon.fromTheme("dialog-warning")
+                if segment.analysis_state == AnalysisState.ANALYZING:
+                    return QtGui.QIcon.fromTheme("view-refresh")
 
         if role == QtCore.Qt.EditRole:
-            return self.get_attribute_from_index(index)
+            return str(data)
+
+        """
+        if role == QtCore.Qt.TextColorRole:
+            state = self.project.segments[index.row()].analysis_state
+            if state == AnalysisState.ANALYZED:
+                color = QtGui.QColor.fromRgb(0, 0, 0)
+            elif state == AnalysisState.ANALYZING:
+                color = QtGui.QColor.fromRgb(125, 125, 0)
+            elif state == AnalysisState.NEED_ANALYSIS:
+                color = QtGui.QColor.fromRgb(255, 0, 0)
+            return color
+        """
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         if not index.isValid():
             return False
 
         if role == QtCore.Qt.EditRole:
+            topleft = index.sibling(0, index.row())
+            bottomright = index
             self._set_attribute_from_index(index, value)
-            # self.project.segments[index] = value
-            self.dataChanged.emit(index, index, (QtCore.Qt.EditRole,))
+            self.dataChanged.emit(topleft, bottomright, (QtCore.Qt.EditRole))
+
         else:
             return False
         return True
