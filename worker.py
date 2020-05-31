@@ -53,3 +53,4 @@ class AnalyzeWorker(Worker):
         super(AnalyzeWorker, self).__init__(
             segment.analyze, self.should_be_interrupted
         )
+        self.segment = segment
