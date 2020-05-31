@@ -48,7 +48,6 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         self.spinBox_index.valueChanged.connect(self.preview_combo)
         self.previewer = None
-        self.previewers = {}
         self.threadpool = QtCore.QThreadPool()
 
         # Change buttons when data changed or new segment selected
@@ -123,15 +122,17 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.pop_error_box(str(e))
             return
 
-        for k in list(self.previewers.keys()):
-            if k[0] == segment:
-                self.previewers.pop(k)
+        if self.previewer is not None:
+            self.previewer.stop()
+        preview.previewManager.cancel(segment)
 
         def compute_done(_):
+            preview.previewManager.compute_previews(
+                self.threadpool, segment.combos[:10]
+            )
             self.set_analysis_state_from_row_index(
                 index, AnalysisState.ANALYZED
             )
-            self.generate_combo_previews(segment, range(10))
 
         def compute_error(err):
             self.set_analysis_state_from_row_index(
@@ -154,35 +155,15 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.get_selected_index()
         )
 
-    def preview_combo(self):
+    def preview_combo(self, i):
         if self.previewer is not None:
             self.previewer.stop()
-        i = self.spinBox_index.value()
-        seg = self.get_selected_segment()
-        if (seg, i) not in self.previewers:
-            self.generate_combo_previews(seg, [i], False)
-            self.generate_combo_previews(seg, range(i + 1, i + 11))
-        self.previewer = self.previewers[(seg, i)]
-        self.previewer.run()
-
-    def generate_combo_previews(self, segment, indices, use_worker=True):
-        for i in indices:
-            if (segment, i) in self.previewers:
-                self.previewers[(segment, i)].stop()
-        if use_worker:
-            w = Worker(self._generate_combo_previews, segment, indices)
-            w.signals.error.connect(print)
-            self.threadpool.start(w)
-        else:
-            self._generate_combo_previews(segment, indices)
-
-    def _generate_combo_previews(self, segment, indices):
-        for i in indices:
-            combo = segment.combos[i]
-            self.previewers[(segment, i)] = preview.Previewer(
-                combo, self.pixmap, self.graphicsView, True
-            )
-            print(f"generated {i}")
+        segment = self.get_selected_segment()
+        self.previewer = preview.previewManager.get_preview(segment.combos[i])
+        preview.previewManager.compute_previews(
+            self.threadpool, segment.combos[i + 1 : i + 6]
+        )
+        self.previewer.run(self.pixmap, self.graphicsView, True)
 
     def closeEvent(self, event):
         if self.wants_to_quit():
