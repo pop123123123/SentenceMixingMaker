@@ -117,6 +117,7 @@ class Segment:
 
     def set_sentence(self, new_sentence):
         self._sentence = new_sentence
+        self.combos = []
 
     def set_chosen_combo_index(self, chosen_combo_index):
         self._current_combo_index = chosen_combo_index

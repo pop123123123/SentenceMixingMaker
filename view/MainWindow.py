@@ -46,9 +46,17 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         self.pushButton_compute.clicked.connect(self.compute_sentence)
 
+        self.pushButton_cancel_compute.clicked.connect(self.cancel_compute)
+
         self.spinBox_index.valueChanged.connect(self.preview_combo)
         self.previewer = None
         self.threadpool = QtCore.QThreadPool()
+
+        self.analyze_worker_list = []
+
+        # Change buttons when data changed or new segment selected
+        self.mapper.currentIndexChanged.connect(self.update_buttons)
+        self.segment_model.dataChanged.connect(self.update_buttons)
 
     def open_project(self, project):
         self.project = project
@@ -60,6 +68,23 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.mapper.setSubmitPolicy(QtWidgets.QDataWidgetMapper.ManualSubmit)
         self.mapper.addMapping(self.lineEdit_sentence, 0)
         self.mapper.addMapping(self.spinBox_index, 1)
+
+    def update_buttons(self, *args):
+        selected_segment = self.get_selected_segment()
+
+        if not selected_segment:
+            self.pushButton_compute.setEnabled(False)
+            self.pushButton_cancel_compute.setEnabled(False)
+
+        if selected_segment.analysis_state == AnalysisState.NEED_ANALYSIS:
+            self.pushButton_compute.setEnabled(True)
+        else:
+            self.pushButton_compute.setEnabled(False)
+
+        if selected_segment.analysis_state == AnalysisState.ANALYZING:
+            self.pushButton_cancel_compute.setEnabled(True)
+        else:
+            self.pushButton_cancel_compute.setEnabled(False)
 
     def add_sentence(self):
         self.setWindowModified(True)
@@ -111,7 +136,10 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.previewer.stop()
         preview.previewManager.cancel(segment)
 
-        def compute_done(_):
+        def compute_finish():
+            filter(lambda x: x.segment != segment, self.analyze_worker_list)
+
+        def compute_success(_):
             preview.previewManager.compute_previews(
                 self.threadpool, segment.combos[:10]
             )
@@ -123,14 +151,35 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.set_analysis_state_from_row_index(
                 index, AnalysisState.NEED_ANALYSIS
             )
-            self.pop_error_box(err)
+            print(err)
 
         self.set_analysis_state_from_row_index(index, AnalysisState.ANALYZING)
 
-        worker = AnalyzeWorker(segment)
-        worker.signals.result.connect(compute_done)
-        worker.signals.error.connect(compute_error)
-        self.threadpool.start(worker)
+        compute_worker = AnalyzeWorker(segment)
+        self.analyze_worker_list.append(compute_worker)
+
+        compute_worker.signals.finished.connect(compute_finish)
+        compute_worker.signals.result.connect(compute_success)
+        compute_worker.signals.error.connect(compute_error)
+        self.threadpool.start(compute_worker)
+
+    def cancel_compute(self):
+        segment = self.get_selected_segment()
+        index = self.get_selected_index()
+
+        # Interrupts all analyzing threads corresponding to current segment
+        list(
+            map(
+                lambda x: x.interrupt(),
+                filter(
+                    lambda x: x.segment == segment, self.analyze_worker_list
+                ),
+            )
+        )
+
+        self.set_analysis_state_from_row_index(
+            index, AnalysisState.NEED_ANALYSIS
+        )
 
     def get_selected_index(self):
         return self.listView.selectionModel().selectedIndexes()[0]
