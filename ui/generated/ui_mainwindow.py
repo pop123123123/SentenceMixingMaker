@@ -46,6 +46,12 @@ class Ui_Sentence(object):
 
         self.listView = QListView(self.centralwidget)
         self.listView.setObjectName(u"listView")
+        self.listView.setAcceptDrops(True)
+        self.listView.setProperty("showDropIndicator", True)
+        self.listView.setDragEnabled(True)
+        self.listView.setDragDropMode(QAbstractItemView.InternalMove)
+        self.listView.setDefaultDropAction(Qt.MoveAction)
+        self.listView.setMovement(QListView.Snap)
 
         self.verticalLayout.addWidget(self.listView)
 

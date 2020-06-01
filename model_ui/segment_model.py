@@ -1,3 +1,5 @@
+import json
+
 import PySide2.QtCore as QtCore
 import PySide2.QtGui as QtGui
 
@@ -71,28 +73,25 @@ class SegmentModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.EditRole:
             return str(data)
 
-        """
-        if role == QtCore.Qt.TextColorRole:
-            state = self.project.segments[index.row()].analysis_state
-            if state == AnalysisState.ANALYZED:
-                color = QtGui.QColor.fromRgb(0, 0, 0)
-            elif state == AnalysisState.ANALYZING:
-                color = QtGui.QColor.fromRgb(125, 125, 0)
-            elif state == AnalysisState.NEED_ANALYSIS:
-                color = QtGui.QColor.fromRgb(255, 0, 0)
-            return color
-        """
-
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         if not index.isValid():
             return False
 
-        if role == QtCore.Qt.EditRole:
+        if (
+            role == QtCore.Qt.EditRole
+            or role == QtCore.Qt.DisplayRole
+            or role == QtCore.Qt.DecorationRole
+        ):
             topleft = index.sibling(0, index.row())
             bottomright = index
             self._set_attribute_from_index(index, value)
             self.dataChanged.emit(topleft, bottomright, (QtCore.Qt.EditRole))
-
+        # Used by drag and drog
+        elif role == QtCore.Qt.UserRole:
+            self.project.segments[index.row()] = value
+            topleft = index.sibling(0, index.row())
+            bottomright = index.sibling(self.columnCount(index), index.row())
+            self.dataChanged.emit(topleft, bottomright, (QtCore.Qt.EditRole))
         else:
             return False
         return True
@@ -118,16 +117,71 @@ class SegmentModel(QtCore.QAbstractTableModel):
         self.endInsertRows()
         return True
 
-    def removeRow(self, position):
-        return self.removeRows(position, 1, None)
+    def removeRow(self, row, parent=QtCore.QModelIndex()):
+        return self.removeRows(row, 1, parent)
 
-    def removeRows(self, position, count, parent):
-        self.beginRemoveRows(
-            QtCore.QModelIndex(), position, position + count - 1
-        )
+    def removeRows(self, row, count, parent=QtCore.QModelIndex()):
+        self.beginRemoveRows(QtCore.QModelIndex(), row, row + count - 1)
 
-        for row in range(0, count):
-            del self.project.segments[position]
+        for _ in range(0, count):
+            del self.project.segments[row]
 
         self.endRemoveRows()
         return True
+
+    def flags(self, index):
+        default_flags = super().flags(index)
+
+        if index.isValid():
+            return QtCore.Qt.ItemFlag.ItemIsDragEnabled | default_flags
+        else:
+            return QtCore.Qt.ItemFlag.ItemIsDropEnabled | default_flags
+
+    def supportedDragActions(self):
+        return QtCore.Qt.MoveAction
+
+    def supportedDropActions(self):
+        return QtCore.Qt.MoveAction
+
+    def mimeTypes(self):
+        return ["text/json"]
+
+    def mimeData(self, indexes):
+        data = [
+            (
+                index.row(),
+                self.get_segment_from_index(index).to_JSON_serializable(),
+            )
+            for index in indexes
+        ]
+        dragData = json.dumps(data)
+        mimeData = QtCore.QMimeData()
+        mimeData.setData("text/json", QtCore.QByteArray(str.encode(dragData)))
+        return mimeData
+
+    def dropMimeData(self, data, action, row, column, parent=None):
+        dropData = json.loads(bytes(data.data("text/json")))
+        row_segments = list(
+            map(
+                lambda x: (
+                    x[0],
+                    Segment.from_JSON_serializable(x[1], self.project),
+                ),
+                dropData,
+            )
+        )
+
+        for drag_row, segment in row_segments:
+            if row != -1 and row != drag_row:
+                self.removeRow(drag_row)
+
+                # Because we are inserting after deletion
+                if drag_row < row:
+                    row = row - 1
+
+                self.insertRow(row)
+                self.setData(
+                    self.index(row, 0, QtCore.QModelIndex()),
+                    segment,
+                    QtCore.Qt.UserRole,
+                )
