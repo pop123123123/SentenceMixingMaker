@@ -25,8 +25,6 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.command_stack = QtWidgets.QUndoStack()
         self.actionUndo.triggered.connect(self.command_stack.undo)
         self.actionRedo.triggered.connect(self.command_stack.redo)
-        self.actionRedo.triggered.connect(self.command_stack.redo)
-        self.actionRedo.triggered.connect(self.command_stack.redo)
 
         self.command_stack.canUndoChanged.connect(self.actionUndo.setEnabled)
         self.command_stack.canRedoChanged.connect(self.actionRedo.setEnabled)
