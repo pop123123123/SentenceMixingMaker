@@ -7,12 +7,26 @@ from sentence_mixing.video_creator.audio import concat_segments
 from worker import Worker
 
 
+def get_loading_frames(fps):
+    w, h = fps, int(9.0 * fps / 16)
+    fs = np.arange(w)
+    fs = np.stack([fs] * fps) - np.arange(fps).reshape((fps, 1))
+    fs = np.stack([fs] * h, axis=-1)
+    fs = fs.transpose(0, 2, 1)
+    fs = np.stack([fs] * 3, axis=-1)
+    fs = (fs > 0).astype(np.uint8) * 160
+    return fs.copy(order="C")
+
+
 def imdisplay(frame, pixmap):
-    """Splashes the given image array on the given pygame screen """
     qimg = QtGui.QImage(
-        frame, frame.shape[1], frame.shape[0], QtGui.QImage.Format_BGR888
+        frame,
+        frame.shape[1],
+        frame.shape[0],
+        3 * frame.shape[1],
+        QtGui.QImage.Format_RGB888,
     )
-    pixmap.setPixmap(QtGui.QPixmap.fromImage(qimg.rgbSwapped()))
+    pixmap.setPixmap(QtGui.QPixmap.fromImage(qimg))
 
 
 def get_format(rate, wave):
@@ -27,15 +41,17 @@ def get_format(rate, wave):
 
 class Previewer:
     def __init__(self, combo, fps=15):
-        self.clip = concatenate_videoclips(
-            [phonem.get_video_clip() for phonem in combo.get_audio_phonems()]
-        )
 
         # audio
-        rate, wave = concat_segments(combo.get_audio_phonems())
-        self.audio_format = get_format(rate, wave)
-        self.data = QtCore.QByteArray(wave.tobytes(order="C"))
-        self.audio_input = QtCore.QBuffer(self.data)
+        if combo is not None:
+            rate, wave = concat_segments(combo.get_audio_phonems())
+            self.audio_format = get_format(rate, wave)
+            self.data = QtCore.QByteArray(wave.tobytes(order="C"))
+            self.audio_input = QtCore.QBuffer(self.data)
+        else:
+            self.audio_format = None
+            self.data = None
+            self.audio_input = None
 
         self.timer = None
         self.audio_output = None
@@ -45,28 +61,38 @@ class Previewer:
         self.t = 0
         self.period_ms = 1.0 / fps
 
-        self.frames = [
-            self.clip.get_frame(t)[::4, ::4].copy(order="C")
-            for t in np.arange(0, self.clip.duration, self.period_ms)
-        ]
+        if combo is None:
+            self.frames = get_loading_frames(fps)
+        else:
+            clip = concatenate_videoclips(
+                [
+                    phonem.get_video_clip()
+                    for phonem in combo.get_audio_phonems()
+                ]
+            )
+            self.frames = [
+                clip.get_frame(t)[::4, ::4].copy(order="C")
+                for t in np.arange(0, clip.duration, self.period_ms)
+            ]
 
     def run(self, pixmap, graphics_view, loop=False):
         self.loop = loop
         self.pixmap = pixmap
         self.graphics_view = graphics_view
 
-        self.audio_output = QtMultimedia.QAudioOutput(
-            self.audio_format, self.graphics_view
-        )
-        self.audio_output.stateChanged.connect(self.audio_state_handler)
         self.timer = QtCore.QTimer(self.graphics_view)
         self.timer.timeout.connect(self.update_frame)
 
         self.timer.start(self.period_ms * 1000)
 
-        # start audio streaming
-        self.audio_input.open(QtCore.QIODevice.ReadOnly)
-        self.audio_output.start(self.audio_input)
+        if self.audio_format is not None:
+            self.audio_output = QtMultimedia.QAudioOutput(
+                self.audio_format, self.graphics_view
+            )
+            self.audio_output.stateChanged.connect(self.audio_state_handler)
+            # start audio streaming
+            self.audio_input.open(QtCore.QIODevice.ReadOnly)
+            self.audio_output.start(self.audio_input)
 
         self.display_frame()
         self.graphics_view.fitInView(self.pixmap, QtCore.Qt.KeepAspectRatio)
@@ -76,11 +102,8 @@ class Previewer:
             self.timer.stop()
         if self.audio_output is not None:
             self.audio_output.stop()
-        self.audio_input.close()
-
-    def prepare_next_frame(self):
-        frame = self.clip.get_frame(self.t)
-        self.frame = frame[::4, ::4].copy(order="C")
+        if self.audio_input is not None:
+            self.audio_input.close()
 
     def display_frame(self):
         imdisplay(self.frames[self.t], self.pixmap)
@@ -205,11 +228,19 @@ class __PreviewManager:
         return p
 
     def __compute_previews(self, combos):
+        cancelled_segments = set()
+        p = None
         for c in combos:
-            self.get_preview(c)
+            if c.segment not in cancelled_segments:
+                p = self.get_preview(c)
+                if p is None:
+                    cancelled_segments.add(c.segment)
+        return p
 
-    def compute_previews(self, thread_pool, combos):
+    def compute_previews(self, thread_pool, combos, callback=None):
         w = Worker(self.__compute_previews, combos)
+        if callback is not None:
+            w.signals.result.connect(callback)
         thread_pool.start(w)
 
     def cancel(self, segment):
@@ -223,3 +254,4 @@ class __PreviewManager:
 
 
 previewManager = __PreviewManager()
+blank_preview = Previewer(None)

@@ -189,15 +189,25 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.get_selected_index()
         )
 
+    @QtCore.Slot()
+    def _preview_combo(self, previewer):
+        if previewer is not None:
+            if self.previewer is not None:
+                self.previewer.stop()
+            self.previewer = previewer
+            self.previewer.run(self.pixmap, self.graphicsView, True)
+
     def preview_combo(self, i):
         if self.previewer is not None:
             self.previewer.stop()
         segment = self.get_selected_segment()
-        self.previewer = preview.previewManager.get_preview(segment.combos[i])
+        preview.previewManager.compute_previews(
+            self.threadpool, segment.combos[i : i + 1], self._preview_combo
+        )
         preview.previewManager.compute_previews(
             self.threadpool, segment.combos[i + 1 : i + 6]
         )
-        self.previewer.run(self.pixmap, self.graphicsView, True)
+        self._preview_combo(preview.blank_preview)
 
     def closeEvent(self, event):
         if self.wants_to_quit():
