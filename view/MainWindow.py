@@ -5,6 +5,7 @@ from pathlib import Path
 from PySide2 import QtCore, QtGui, QtMultimedia, QtMultimediaWidgets, QtWidgets
 from sentence_mixing.video_creator.video import create_video_file
 
+import view.commands as commands
 import view.video_assembly as video_assembly
 from data_model.project import Project, load_project
 from data_model.segment import AnalysisState
@@ -20,6 +21,16 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         QtWidgets.QMainWindow.__init__(self)
         Ui_Sentence.__init__(self)
         self.setupUi(self)
+
+        self.command_stack = QtWidgets.QUndoStack()
+        self.actionUndo.triggered.connect(self.command_stack.undo)
+        self.actionRedo.triggered.connect(self.command_stack.redo)
+        self.actionRedo.triggered.connect(self.command_stack.redo)
+        self.actionRedo.triggered.connect(self.command_stack.redo)
+
+        self.command_stack.canUndoChanged.connect(self.actionUndo.setEnabled)
+        self.command_stack.canRedoChanged.connect(self.actionRedo.setEnabled)
+        self.command_stack.cleanChanged.connect(self.stackCleanChanged)
 
         self.actionNew.triggered.connect(self.new)
         self.actionOpen.triggered.connect(self.open)
@@ -86,13 +97,16 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         else:
             self.pushButton_cancel_compute.setEnabled(False)
 
-    def add_sentence(self):
-        self.setWindowModified(True)
-        i = len(self.project.segments)
-        self.segment_model.insertRow(i)
+    @QtCore.Slot()
+    def stackCleanChanged(self, is_clean):
+        self.setWindowModified(not is_clean)
 
-        index = self.segment_model.createIndex(i, 0)
-        self.listView.setCurrentIndex(index)
+    def add_sentence(self):
+        i = self.get_selected_i()
+        command = commands.AddSegmentCommand(
+            self.segment_model, self.listView, i, i + 1
+        )
+        self.command_stack.push(command)
 
     def set_analysis_state_from_row_index(self, index, state):
         index_column_analysis = index.sibling(index.row(), 2)
@@ -181,6 +195,11 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             index, AnalysisState.NEED_ANALYSIS
         )
 
+    def get_selected_i(self):
+        if len(self.listView.selectionModel().selectedIndexes()) > 0:
+            return self.listView.selectionModel().selectedIndexes()[0].row()
+        return -1
+
     def get_selected_index(self):
         return self.listView.selectionModel().selectedIndexes()[0]
 
@@ -219,7 +238,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         findDialog = NewProjectDialog(self)
         seed, urls = findDialog.get_project_settings()
         self.open_project(Project(None, seed, urls))
-        self.setWindowModified(False)
+        self.command_stack.resetClean()
 
     def open(self):
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
@@ -230,7 +249,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         )
         try:
             self.open_project(load_project(path))
-            self.setWindowModified(False)
+            self.command_stack.setClean(True)
         except EnvironmentError as e:
             QtWidgets.QMessageBox.information(
                 self, self.tr("Unable to open file"), e.args[0]
@@ -245,7 +264,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
     def _save(self):
         try:
             self.project.save()
-            self.setWindowModified(False)
+            self.command_stack.setClean(True)
         except EnvironmentError as e:
             QtWidgets.QMessageBox.information(
                 self, self.tr("Unable to open file"), e.args[0],
