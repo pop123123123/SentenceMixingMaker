@@ -79,6 +79,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.mapper.addMapping(self.spinBox_index, 1)
 
     def update_buttons(self, *args):
+        # TODO check this
         selected_segment = self.get_selected_segment()
 
         if not selected_segment:
@@ -106,18 +107,8 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         )
         self.command_stack.push(command)
 
-    def set_analysis_state_from_row_index(self, index, state):
-        index_column_analysis = index.sibling(index.row(), 2)
-        self.segment_model.setData(
-            index_column_analysis, state, QtCore.Qt.EditRole
-        )
-
     def edit_sentence(self):
         self.mapper.submit()
-
-        self.set_analysis_state_from_row_index(
-            self.get_selected_index(), AnalysisState.NEED_ANALYSIS
-        )
 
     def table_index_change(self, selected, unselected):
         if len(selected.indexes()) > 0:
@@ -138,7 +129,6 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             )
             return
         try:
-            index = self.get_selected_index()
             segment = self.get_selected_segment()
         except Exception as e:
             self.pop_error_box(str(e))
@@ -155,17 +145,9 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             preview.previewManager.compute_previews(
                 self.threadpool, segment.combos[:10]
             )
-            self.set_analysis_state_from_row_index(
-                index, AnalysisState.ANALYZED
-            )
 
         def compute_error(err):
-            self.set_analysis_state_from_row_index(
-                index, AnalysisState.NEED_ANALYSIS
-            )
             print(err)
-
-        self.set_analysis_state_from_row_index(index, AnalysisState.ANALYZING)
 
         compute_worker = AnalyzeWorker(segment)
         self.analyze_worker_list.append(compute_worker)
@@ -177,7 +159,6 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
     def cancel_compute(self):
         segment = self.get_selected_segment()
-        index = self.get_selected_index()
 
         # Interrupts all analyzing threads corresponding to current segment
         list(
@@ -187,10 +168,6 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
                     lambda x: x.segment == segment, self.analyze_worker_list
                 ),
             )
-        )
-
-        self.set_analysis_state_from_row_index(
-            index, AnalysisState.NEED_ANALYSIS
         )
 
     def get_selected_i(self):
@@ -281,11 +258,12 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self._save()
 
     def collect_combos(self, strict=True):
-        if strict and not self.project.segments:
+        if strict and not len(self.segment_model.ordered_segments) == 0:
             raise Exception("No segment found")
 
         phonems = []
-        for segment in self.project.segments:
+        for ordered_segment in self.segment_model.ordered_segments:
+            segment = ordered_segment.get_associated_segment()
             if not segment.combos:
                 if strict:
                     raise Exception("A segment have not been analyzed")

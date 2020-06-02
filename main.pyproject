@@ -1,3 +1,3 @@
 {
-    "files": ["ui/new.ui","main.py","view/preview.py","model_ui/segment_model.py","view/NewProjectDialog.py","controler.py","data_model/segment.py","view/MainWindow.py","ui/mainwindow.ui","ui_mainwindow.py","new.ui","ui/dialog.ui","data_model/project.py","mainwindow.ui","model.py","view/commands.py"]
+    "files": ["new.ui","data_model/project.py","view/NewProjectDialog.py","controler.py","view/MainWindow.py","mainwindow.ui","ui/new.ui","view/preview.py","model.py","ui/dialog.ui","model_ui/segment_model.py","data_model/segment.py","ui/mainwindow.ui","ui_mainwindow.py","view/commands.py","main.py","worker.py"]
 }

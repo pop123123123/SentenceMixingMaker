@@ -43,7 +43,7 @@ class Project:
         self.seed = seed
         self.urls = urls
         self.videos = None
-        self.segments = []
+        self.segments = {}
 
     def set_videos(self, videos):
         assert not self.are_videos_ready()
@@ -53,17 +53,6 @@ class Project:
         if path is not None and not path.endswith(".p00p"):
             path += ".p00p"
         self.path = path
-
-    def generate_video(self):
-        clips = []
-        for segment in self.segments:
-            clips.append(segment.generate_clip())
-
-        # TODO: assembler les clips
-        final_clip = clips
-        raise NotImplementedError()
-
-        return final_clip
 
     def are_videos_ready(self):
         return self.videos is not None
@@ -88,33 +77,24 @@ class Project:
         segment_copy = copy(segment)
         self.add_segment(segment_copy)
 
-    def get_segment(self, index):
-        """Returns segment at specific index"""
+    def get_segment(self, sentence):
+        """Returns segment of specified sentence"""
+        if sentence not in self.segments:
+            self.create_segment(sentence)
 
-        return self.project.segments[index]
+        return self.segments[sentence]
 
     def change_current_combo_index(self, new_combo_index):
         """Change index to current selected combo"""
 
         self.selected_segment.set_chosen_combo_index(new_combo_index)
 
-    def export_video(self, video_path):
-        raise NotImplementedError()
-
-        # video = self.get_whole_preview()
-        # TODO: write video in file video_path
-
-    def add_segment(self, segment):
-        """Append segment at the end of the project's segment list"""
-
-        self.segments.append(segment)
-
     def create_segment(self, sentence):
-        """Create a segment from a sentence and appends it at the end of project's segment list"""
+        """Create a segment from a sentence and stores it"""
 
-        self.add_segment(Segment(self, sentence))
+        self.segments[sentence] = Segment(self, sentence)
 
-    def remove_segment(self, segment_index):
-        """Remove a segment from project's segment list"""
+    def _remove_segment(self, sentence):
+        """Remove a segment from project's segment dict"""
 
-        self.segments.pop(segment_index)
+        self.segments.pop(sentence)

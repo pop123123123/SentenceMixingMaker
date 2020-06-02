@@ -10,37 +10,72 @@ SET_PREFIX = "set_"
 COLUMN_INDEX_TO_ATTRIBUTE = {
     0: "sentence",
     1: "chosen_combo_index",
-    2: "analysis_state",
 }
+
+
+class ChosenCombo:
+    def __init__(self, project, sentence="", index=0):
+        self.project = project
+        self.sentence = sentence
+        self.index = index
+
+    def get_associated_segment(self):
+        return self.project.get_segment(self.sentence)
+
+    def get_chosen_combo_index(self):
+        return self.index
+
+    def set_chosen_combo_index(self, index):
+        self.index = index
+
+    def get_sentence(self):
+        return self.sentence
+
+    def set_sentence(self, sentence):
+        self.sentence = sentence
+
+    def get_analysis_state(self):
+        return self.get_associated_segment(self.project).get_analysis_state()
+
+    def set_analysis_state(self, state):
+        return self.get_associated_segment().set_analysis_state(state)
+
+    def to_JSON_serializable(self):
+        return {
+            "sentence": self.sentence,
+            "index": self.index,
+        }
+
+    def from_JSON_serializable(project, json_serializable):
+        return ChosenCombo(
+            project, json_serializable["sentence"], json_serializable["index"]
+        )
+
+    def __repr__(self):
+        return f'("{self.sentence}", {self.index})'
 
 
 class SegmentModel(QtCore.QAbstractTableModel):
     def __init__(self, project, *args, **kwargs):
         QtCore.QAbstractTableModel.__init__(self, *args, **kwargs)
         self.project = project
+        self.ordered_segments = []
 
     def get_segment_from_index(self, index):
-        return self.project.segments[index.row()]
+        return self.get_chosen_from_index(index).get_associated_segment()
+
+    def get_chosen_from_index(self, index):
+        return self.ordered_segments[index.row()]
 
     def get_attribute_from_index(self, index):
-        global GET_PREFIX
-        global COLUMN_TO_ATTRIBUTE
-
-        segment = self.get_segment_from_index(index)
-
         getter_name = GET_PREFIX + COLUMN_INDEX_TO_ATTRIBUTE[index.column()]
-        getter = getattr(segment, getter_name, None)
+        getter = getattr(self.get_chosen_from_index(index), getter_name, None)
 
         return getter()
 
     def _set_attribute_from_index(self, index, new_value):
-        global SET_PREFIX
-        global COLUMN_TO_ATTRIBUTE
-
-        segment = self.get_segment_from_index(index)
-
         setter_name = SET_PREFIX + COLUMN_INDEX_TO_ATTRIBUTE[index.column()]
-        setter = getattr(segment, setter_name, None)
+        setter = getattr(self.get_chosen_from_index(index), setter_name, None)
 
         return setter(new_value)
 
@@ -64,11 +99,11 @@ class SegmentModel(QtCore.QAbstractTableModel):
 
         if role == QtCore.Qt.DecorationRole:
             if index.column() == 0:
-                segment = self.get_segment_from_index(index)
-                if segment.analysis_state == AnalysisState.NEED_ANALYSIS:
-                    return QtGui.QIcon.fromTheme("dialog-warning")
-                if segment.analysis_state == AnalysisState.ANALYZING:
-                    return QtGui.QIcon.fromTheme("view-refresh")
+                # TODO restore indicator
+                #                if x == AnalysisState.NEED_ANALYSIS:
+                #                    return QtGui.QIcon.fromTheme("dialog-warning")
+                #                if x == AnalysisState.ANALYZING:
+                return QtGui.QIcon.fromTheme("view-refresh")
 
         if role == QtCore.Qt.EditRole:
             return str(data)
@@ -88,7 +123,7 @@ class SegmentModel(QtCore.QAbstractTableModel):
             self.dataChanged.emit(topleft, bottomright, (QtCore.Qt.EditRole))
         # Used by drag and drog
         elif role == QtCore.Qt.UserRole:
-            self.project.segments[index.row()] = value
+            self.ordered_segments[index.row()] = value
             topleft = index.sibling(0, index.row())
             bottomright = index.sibling(self.columnCount(index), index.row())
             self.dataChanged.emit(topleft, bottomright, (QtCore.Qt.EditRole))
@@ -97,10 +132,9 @@ class SegmentModel(QtCore.QAbstractTableModel):
         return True
 
     def rowCount(self, index):
-        return len(self.project.segments)
+        return len(self.ordered_segments)
 
     def columnCount(self, index):
-        global COLUMN_INDEX_TO_ATTRIBUTE
         return len(COLUMN_INDEX_TO_ATTRIBUTE)
 
     def insertRow(self, position):
@@ -112,7 +146,7 @@ class SegmentModel(QtCore.QAbstractTableModel):
         )
 
         for row in range(0, count):
-            self.project.segments.insert(position, Segment(self.project, ""))
+            self.ordered_segments.insert(position, ChosenCombo(self.project))
 
         self.endInsertRows()
         return True
@@ -124,7 +158,7 @@ class SegmentModel(QtCore.QAbstractTableModel):
         self.beginRemoveRows(QtCore.QModelIndex(), row, row + count - 1)
 
         for _ in range(0, count):
-            del self.project.segments[row]
+            del self.ordered_segments[row]
 
         self.endRemoveRows()
         return True
@@ -150,7 +184,7 @@ class SegmentModel(QtCore.QAbstractTableModel):
         data = [
             (
                 index.row(),
-                self.get_segment_from_index(index).to_JSON_serializable(),
+                self.get_chosen_from_index(index).to_JSON_serializable(),
             )
             for index in indexes
         ]
@@ -165,7 +199,7 @@ class SegmentModel(QtCore.QAbstractTableModel):
             map(
                 lambda x: (
                     x[0],
-                    Segment.from_JSON_serializable(x[1], self.project),
+                    ChosenCombo.from_JSON_serializable(self.project, x[1]),
                 ),
                 dropData,
             )
@@ -176,6 +210,7 @@ class SegmentModel(QtCore.QAbstractTableModel):
                 self.removeRow(drag_row)
 
                 # Because we are inserting after deletion
+                # TODO check if this works with multiple drags
                 if drag_row < row:
                     row = row - 1
 

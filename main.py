@@ -7,7 +7,7 @@ from sentence_mixing import sentence_mixer
 from sentence_mixing.video_creator.download import dl_video
 
 from data_model.project import Project
-from view.MainWindow import MainWindow
+from view.MainWindow import MainWindow, load_project
 from worker import Worker
 
 
@@ -30,9 +30,7 @@ if __name__ == "__main__":
 
     project = Project("/tmp/lol", 0, [vids],)
 
-    sentence_mixer.prepare_sm(
-        "/home/nicolas/Documents/Trucs/sentence_mixing_maker/config/config.json"
-    )
+    sentence_mixer.prepare_sm("/home/louis/projets/sentence/config.json")
 
     worker = Worker(download_video_and_audio, vids)
     worker.signals.result.connect(project.set_videos)
@@ -42,6 +40,7 @@ if __name__ == "__main__":
     threadpool.start(worker)
 
     window = MainWindow(project)
+    #    window.open_project(load_project('/tmp/lol.p00p'))
     window.show()
 
     sys.exit(app.exec_())

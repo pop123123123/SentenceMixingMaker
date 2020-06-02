@@ -1,6 +1,7 @@
 from enum import Enum
 
 import sentence_mixing.sentence_mixer as sm
+from sentence_mixing.model.exceptions import Interruption
 
 
 def get_phonem_project_index(ph, project):
@@ -65,7 +66,6 @@ class Segment:
         self.set_combos(combos)
 
         self.analysis_state = AnalysisState.NEED_ANALYSIS
-        self._current_combo_index = current_combo_index
 
     def to_JSON_serializable(self):
         obj = self.__dict__.copy()
@@ -88,41 +88,31 @@ class Segment:
         return seg
 
     def analyze(self, interrupt_callback):
-        self.set_combos(
-            [
-                Combo(c, self)
-                for c in sm.process_sm(
-                    self._sentence,
-                    self.project.videos,
-                    seed=self.project.seed,
-                    interrupt_callback=interrupt_callback,
-                )
-            ]
-        )
-
-    def get_chosen_combo(self):
-        return self.combos[self._current_combo_index]
-
-    def generate_clip(self):
-        raise NotImplementedError()
+        self._set_analysis_state(AnalysisState.ANALYZING)
+        try:
+            self.set_combos(
+                [
+                    Combo(c, self)
+                    for c in sm.process_sm(
+                        self._sentence,
+                        self.project.videos,
+                        seed=self.project.seed,
+                        interrupt_callback=interrupt_callback,
+                    )
+                ]
+            )
+            self._set_analysis_state(AnalysisState.ANALYZED)
+        except Interruption as i:
+            self._set_analysis_state(AnalysisState.NEED_ANALYSIS)
+            raise i
 
     def get_sentence(self):
         return self._sentence
 
-    def get_chosen_combo_index(self):
-        return self._current_combo_index
-
     def get_analysis_state(self):
         return self.analysis_state
 
-    def set_sentence(self, new_sentence):
-        self._sentence = new_sentence
-        self.combos = []
-
-    def set_chosen_combo_index(self, chosen_combo_index):
-        self._current_combo_index = chosen_combo_index
-
-    def set_analysis_state(self, state):
+    def _set_analysis_state(self, state):
         self.analysis_state = state
 
     def set_combos(self, combos):
