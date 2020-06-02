@@ -50,6 +50,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.segment_model.dataChanged.connect(self.data_changed)
 
         self.pushButton_add_sentence.clicked.connect(self.add_sentence)
+        self.pushButton_remove_sentence.clicked.connect(self.remove_sentence)
 
         self.pushButton_sentence_edit.clicked.connect(self.edit_sentence)
 
@@ -78,6 +79,13 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         i = self.get_selected_i()
         command = commands.AddSegmentCommand(
             self.segment_model, self.listView, i, i + 1
+        )
+        self.command_stack.push(command)
+
+    def remove_sentence(self):
+        i = self.get_selected_i()
+        command = commands.RemoveSegmentCommand(
+            self.segment_model, self.listView, i
         )
         self.command_stack.push(command)
 

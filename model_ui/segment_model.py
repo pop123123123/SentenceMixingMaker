@@ -1,4 +1,5 @@
 import json
+from enum import Enum
 
 import PySide2.QtCore as QtCore
 import PySide2.QtGui as QtGui
@@ -13,6 +14,12 @@ COLUMN_INDEX_TO_ATTRIBUTE = {
     1: "chosen_combo_index",
     2: "analyzing",
 }
+
+
+class Columns(Enum):
+    sentence = 0
+    combo_index = 1
+    analysing = 2
 
 
 class ChosenCombo:
@@ -39,11 +46,11 @@ class ChosenCombo:
     def set_sentence(self, sentence):
         self.sentence = sentence
 
-    def get_analysis_state(self):
-        return self.get_associated_segment(self.project).get_analysis_state()
+    def get_analyzing(self):
+        return self.get_associated_segment().is_analyzing()
 
     def set_analysis_state(self, state):
-        return self.get_associated_segment().set_analysis_state(state)
+        assert False, "you should not be calling this"
 
     def to_JSON_serializable(self):
         return {
@@ -104,7 +111,7 @@ class SegmentModel(QtCore.QAbstractTableModel):
 
         if role == QtCore.Qt.DecorationRole:
             if index.column() == 0:
-                if len(self.get_segment_from_index(index).combos) == 0:
+                if self.get_segment_from_index(index).is_analyzing():
                     return QtGui.QIcon.fromTheme("view-refresh")
 
         if role == QtCore.Qt.EditRole:

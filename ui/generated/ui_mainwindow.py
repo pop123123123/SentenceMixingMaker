@@ -63,7 +63,7 @@ class Ui_Sentence(object):
         self.listView.setContextMenuPolicy(Qt.NoContextMenu)
         self.listView.setAcceptDrops(True)
         self.listView.setProperty("showDropIndicator", True)
-        self.listView.setDragEnabled(True)
+        self.listView.setDragEnabled(False)
         self.listView.setDragDropMode(QAbstractItemView.InternalMove)
         self.listView.setDefaultDropAction(Qt.MoveAction)
         self.listView.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -78,6 +78,11 @@ class Ui_Sentence(object):
         self.pushButton_add_sentence.setObjectName(u"pushButton_add_sentence")
 
         self.horizontalLayout_2.addWidget(self.pushButton_add_sentence)
+
+        self.pushButton_remove_sentence = QPushButton(self.centralwidget)
+        self.pushButton_remove_sentence.setObjectName(u"pushButton_remove_sentence")
+
+        self.horizontalLayout_2.addWidget(self.pushButton_remove_sentence)
 
         self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -136,7 +141,7 @@ class Ui_Sentence(object):
         Sentence.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(Sentence)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 800, 32))
+        self.menubar.setGeometry(QRect(0, 0, 800, 23))
         self.menucoucou = QMenu(self.menubar)
         self.menucoucou.setObjectName(u"menucoucou")
         self.menuEdit = QMenu(self.menubar)
@@ -215,6 +220,7 @@ class Ui_Sentence(object):
 #endif // QT_CONFIG(shortcut)
         self.label.setText(QCoreApplication.translate("Sentence", u"Sentences", None))
         self.pushButton_add_sentence.setText(QCoreApplication.translate("Sentence", u"Add", None))
+        self.pushButton_remove_sentence.setText(QCoreApplication.translate("Sentence", u"Remove", None))
         self.pushButton_3.setText(QCoreApplication.translate("Sentence", u"Preview", None))
         self.pushButton_sentence_edit.setText(QCoreApplication.translate("Sentence", u"Submit", None))
         self.menucoucou.setTitle(QCoreApplication.translate("Sentence", u"Fi&le", None))
