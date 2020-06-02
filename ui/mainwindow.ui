@@ -26,6 +26,9 @@
       </item>
       <item>
        <widget class="QListView" name="listView">
+        <property name="contextMenuPolicy">
+         <enum>Qt::NoContextMenu</enum>
+        </property>
         <property name="acceptDrops">
          <bool>true</bool>
         </property>
@@ -33,13 +36,19 @@
          <bool>true</bool>
         </property>
         <property name="dragEnabled">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
         <property name="dragDropMode">
          <enum>QAbstractItemView::InternalMove</enum>
         </property>
         <property name="defaultDropAction">
          <enum>Qt::MoveAction</enum>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::ExtendedSelection</enum>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
         </property>
         <property name="movement">
          <enum>QListView::Snap</enum>
@@ -161,7 +170,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>23</height>
+     <height>32</height>
     </rect>
    </property>
    <widget class="QMenu" name="menucoucou">
@@ -179,7 +188,7 @@
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
-     <string>Edit</string>
+     <string>&amp;Edit</string>
     </property>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
@@ -244,7 +253,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Undo</string>
+    <string>&amp;Undo</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Z</string>
@@ -255,7 +264,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Redo</string>
+    <string>&amp;Redo</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Y</string>
@@ -263,7 +272,7 @@
   </action>
   <action name="actionCopy">
    <property name="text">
-    <string>Copy</string>
+    <string>&amp;Copy</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
@@ -271,7 +280,7 @@
   </action>
   <action name="actionPaste">
    <property name="text">
-    <string>Paste</string>
+    <string>&amp;Paste</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+V</string>

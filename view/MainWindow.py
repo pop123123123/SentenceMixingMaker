@@ -46,8 +46,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.mapper = QtWidgets.QDataWidgetMapper()
         self.open_project(project)
 
-        # self.listView.indexesMoved.connect(self.table_index_change)
-        self.listView.selectionChanged = self.table_index_change
+        self.listView.currentChanged = self.table_index_change
 
         self.pushButton_add_sentence.clicked.connect(self.add_sentence)
 
@@ -64,8 +63,8 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.analyze_worker_list = []
 
         # Change buttons when data changed or new segment selected
-        self.mapper.currentIndexChanged.connect(self.update_buttons)
-        self.segment_model.dataChanged.connect(self.update_buttons)
+        # self.mapper.currentIndexChanged.connect(self.update_buttons)
+        # self.segment_model.dataChanged.connect(self.update_buttons)
 
     def open_project(self, project):
         self.project = project
@@ -110,11 +109,8 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
     def edit_sentence(self):
         self.mapper.submit()
 
-    def table_index_change(self, selected, unselected):
-        if len(selected.indexes()) > 0:
-            self.mapper.setCurrentModelIndex(selected.indexes()[0])
-        else:
-            self.mapper.setCurrentIndex(-1)
+    def table_index_change(self, current, _previous):
+        self.mapper.setCurrentIndex(current.row())
 
     def pop_error_box(self, message):
         print(message)

@@ -205,18 +205,22 @@ class SegmentModel(QtCore.QAbstractTableModel):
             )
         )
 
-        for drag_row, segment in row_segments:
-            if row != -1 and row != drag_row:
-                self.removeRow(drag_row)
+        row_segments.sort(key=lambda x: x[0], reverse=False)
+        drag_rows, segments = zip(*row_segments)
 
-                # Because we are inserting after deletion
-                # TODO check if this works with multiple drags
-                if drag_row < row:
-                    row = row - 1
+        if row != -1:
+            insert_shifter = 0
+            for i, drag_row in enumerate(drag_rows):
+                self.removeRow(drag_row - i)
+                if row >= drag_row:
+                    insert_shifter += 1
 
-                self.insertRow(row)
+            for segment in reversed(segments):
+                adapted_row = row - insert_shifter
+
+                self.insertRow(adapted_row)
                 self.setData(
-                    self.index(row, 0, QtCore.QModelIndex()),
+                    self.index(adapted_row, 0, QtCore.QModelIndex()),
                     segment,
                     QtCore.Qt.UserRole,
                 )
