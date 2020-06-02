@@ -54,6 +54,10 @@ class Ui_Sentence(object):
 
         self.verticalLayout.addWidget(self.label)
 
+        self.horizontalSpacer_4 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.verticalLayout.addItem(self.horizontalSpacer_4)
+
         self.listView = QListView(self.centralwidget)
         self.listView.setObjectName(u"listView")
         self.listView.setAcceptDrops(True)
@@ -126,18 +130,6 @@ class Ui_Sentence(object):
 
         self.verticalLayout_2.addLayout(self.horizontalLayout_3)
 
-        self.pushButton_compute = QPushButton(self.centralwidget)
-        self.pushButton_compute.setObjectName(u"pushButton_compute")
-        self.pushButton_compute.setEnabled(False)
-
-        self.verticalLayout_2.addWidget(self.pushButton_compute)
-
-        self.pushButton_cancel_compute = QPushButton(self.centralwidget)
-        self.pushButton_cancel_compute.setObjectName(u"pushButton_cancel_compute")
-        self.pushButton_cancel_compute.setEnabled(False)
-
-        self.verticalLayout_2.addWidget(self.pushButton_cancel_compute)
-
         Sentence.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(Sentence)
         self.menubar.setObjectName(u"menubar")
@@ -154,7 +146,6 @@ class Ui_Sentence(object):
         QWidget.setTabOrder(self.pushButton_add_sentence, self.pushButton_3)
         QWidget.setTabOrder(self.pushButton_3, self.lineEdit_sentence)
         QWidget.setTabOrder(self.lineEdit_sentence, self.pushButton_sentence_edit)
-        QWidget.setTabOrder(self.pushButton_sentence_edit, self.pushButton_compute)
 
         self.menubar.addAction(self.menucoucou.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
@@ -223,8 +214,6 @@ class Ui_Sentence(object):
         self.pushButton_add_sentence.setText(QCoreApplication.translate("Sentence", u"Add", None))
         self.pushButton_3.setText(QCoreApplication.translate("Sentence", u"Preview", None))
         self.pushButton_sentence_edit.setText(QCoreApplication.translate("Sentence", u"Submit", None))
-        self.pushButton_compute.setText(QCoreApplication.translate("Sentence", u"Compute", None))
-        self.pushButton_cancel_compute.setText(QCoreApplication.translate("Sentence", u"Cancel computing", None))
         self.menucoucou.setTitle(QCoreApplication.translate("Sentence", u"Fi&le", None))
         self.menuEdit.setTitle(QCoreApplication.translate("Sentence", u"Edit", None))
     # retranslateUi

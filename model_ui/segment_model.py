@@ -3,13 +3,15 @@ import json
 import PySide2.QtCore as QtCore
 import PySide2.QtGui as QtGui
 
-from data_model.segment import AnalysisState, Segment
+from data_model.segment import Segment
+from worker import AnalysisState
 
 GET_PREFIX = "get_"
 SET_PREFIX = "set_"
 COLUMN_INDEX_TO_ATTRIBUTE = {
     0: "sentence",
     1: "chosen_combo_index",
+    2: "analyzing",
 }
 
 
@@ -18,6 +20,9 @@ class ChosenCombo:
         self.project = project
         self.sentence = sentence
         self.index = index
+
+    def get_chosen_combo(self):
+        return self.get_associated_segment().combos[self.index]
 
     def get_associated_segment(self):
         return self.project.get_segment(self.sentence)
@@ -99,11 +104,8 @@ class SegmentModel(QtCore.QAbstractTableModel):
 
         if role == QtCore.Qt.DecorationRole:
             if index.column() == 0:
-                # TODO restore indicator
-                #                if x == AnalysisState.NEED_ANALYSIS:
-                #                    return QtGui.QIcon.fromTheme("dialog-warning")
-                #                if x == AnalysisState.ANALYZING:
-                return QtGui.QIcon.fromTheme("view-refresh")
+                if len(self.get_segment_from_index(index).combos) == 0:
+                    return QtGui.QIcon.fromTheme("view-refresh")
 
         if role == QtCore.Qt.EditRole:
             return str(data)
@@ -117,16 +119,14 @@ class SegmentModel(QtCore.QAbstractTableModel):
             or role == QtCore.Qt.DisplayRole
             or role == QtCore.Qt.DecorationRole
         ):
-            topleft = index.sibling(0, index.row())
-            bottomright = index
             self._set_attribute_from_index(index, value)
-            self.dataChanged.emit(topleft, bottomright, (QtCore.Qt.EditRole))
+            self.dataChanged.emit(index, index, [role])
         # Used by drag and drog
         elif role == QtCore.Qt.UserRole:
             self.ordered_segments[index.row()] = value
             topleft = index.sibling(0, index.row())
             bottomright = index.sibling(self.columnCount(index), index.row())
-            self.dataChanged.emit(topleft, bottomright, (QtCore.Qt.EditRole))
+            self.dataChanged.emit(topleft, bottomright, [role])
         else:
             return False
         return True
@@ -162,6 +162,16 @@ class SegmentModel(QtCore.QAbstractTableModel):
 
         self.endRemoveRows()
         return True
+
+    @QtCore.Slot()
+    def analysis_state_changed(self, sentence):
+        for i, chosen_segment in enumerate(self.ordered_segments):
+            if chosen_segment.sentence == sentence:
+                topleft = self.index(i, 2)
+                bottomright = self.index(i, 2)
+                self.dataChanged.emit(
+                    topleft, bottomright, (QtCore.Qt.EditRole)
+                )
 
     def flags(self, index):
         default_flags = super().flags(index)

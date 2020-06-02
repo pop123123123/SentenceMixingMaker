@@ -25,6 +25,19 @@
        </widget>
       </item>
       <item>
+       <spacer name="horizontalSpacer_4">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
        <widget class="QListView" name="listView">
         <property name="acceptDrops">
          <bool>true</bool>
@@ -132,26 +145,6 @@
        </spacer>
       </item>
      </layout>
-    </item>
-    <item>
-     <widget class="QPushButton" name="pushButton_compute">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Compute</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QPushButton" name="pushButton_cancel_compute">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Cancel computing</string>
-      </property>
-     </widget>
     </item>
    </layout>
   </widget>
@@ -284,7 +277,6 @@
   <tabstop>pushButton_3</tabstop>
   <tabstop>lineEdit_sentence</tabstop>
   <tabstop>pushButton_sentence_edit</tabstop>
-  <tabstop>pushButton_compute</tabstop>
  </tabstops>
  <resources/>
  <connections/>

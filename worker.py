@@ -1,3 +1,5 @@
+from enum import Enum
+
 from PySide2 import QtCore
 from sentence_mixing import sentence_mixer
 from sentence_mixing.model.exceptions import Interruption
@@ -48,9 +50,26 @@ class Worker(QtCore.QRunnable):
         self.interruption_flag = True
 
 
-class AnalyzeWorker(Worker):
+class AnalysisState(Enum):
+    ANALYZED = 0
+    ANALYZING = 1
+    NEED_ANALYSIS = 2
+
+
+class AnalyzeWorker(Worker, QtCore.QObject):
+    stateChanged = QtCore.Signal(str)
+
     def __init__(self, segment):
+        QtCore.QObject.__init__(self)
         super(AnalyzeWorker, self).__init__(
-            segment.analyze, self.should_be_interrupted
+            self.analyze_segment, self.should_be_interrupted
         )
         self.segment = segment
+
+    def analyze_segment(self, interrupt_callback):
+        try:
+            self.segment.analyze(interrupt_callback)
+            self.stateChanged.emit(self.segment.get_sentence())
+        except Interruption as i:
+            #            self.stateChanged.emit(self.segment.get_sentence(), AnalysisState.NEED_ANALYSIS)
+            raise i

@@ -1,5 +1,3 @@
-from enum import Enum
-
 import sentence_mixing.sentence_mixer as sm
 from sentence_mixing.model.exceptions import Interruption
 
@@ -53,23 +51,14 @@ class Combo:
         )
 
 
-class AnalysisState(Enum):
-    ANALYZED = 0
-    ANALYZING = 1
-    NEED_ANALYSIS = 2
-
-
 class Segment:
     def __init__(self, project, sentence, current_combo_index=0, combos=[]):
         self.project = project
         self._sentence = sentence
         self.set_combos(combos)
 
-        self.analysis_state = AnalysisState.NEED_ANALYSIS
-
     def to_JSON_serializable(self):
         obj = self.__dict__.copy()
-        obj["analysis_state"] = self.analysis_state.value
         obj["combos"] = [
             c.to_JSON_serializable(self.project) for c in self.combos
         ]
@@ -78,7 +67,6 @@ class Segment:
 
     def from_JSON_serializable(obj, project):
         seg = Segment(project, obj["_sentence"], obj["_current_combo_index"])
-        seg.analysis_state = AnalysisState(obj["analysis_state"])
         seg.set_combos(
             [
                 Combo.from_JSON_serializable(c, project, seg)
@@ -88,32 +76,26 @@ class Segment:
         return seg
 
     def analyze(self, interrupt_callback):
-        self._set_analysis_state(AnalysisState.ANALYZING)
-        try:
-            self.set_combos(
-                [
-                    Combo(c, self)
-                    for c in sm.process_sm(
-                        self._sentence,
-                        self.project.videos,
-                        seed=self.project.seed,
-                        interrupt_callback=interrupt_callback,
-                    )
-                ]
-            )
-            self._set_analysis_state(AnalysisState.ANALYZED)
-        except Interruption as i:
-            self._set_analysis_state(AnalysisState.NEED_ANALYSIS)
-            raise i
+        self.set_combos(
+            [
+                Combo(c, self)
+                for c in sm.process_sm(
+                    self._sentence,
+                    self.project.videos,
+                    seed=self.project.seed,
+                    interrupt_callback=interrupt_callback,
+                )
+            ]
+        )
 
     def get_sentence(self):
         return self._sentence
 
-    def get_analysis_state(self):
-        return self.analysis_state
+    def is_analyzing(self):
+        return len(self.combos) == 0
 
-    def _set_analysis_state(self, state):
-        self.analysis_state = state
+    def need_analysis(self):
+        return len(self.combos) == 0
 
     def set_combos(self, combos):
         self.combos = combos

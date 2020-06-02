@@ -8,7 +8,6 @@ from sentence_mixing.video_creator.video import create_video_file
 import view.commands as commands
 import view.video_assembly as video_assembly
 from data_model.project import Project, load_project
-from data_model.segment import AnalysisState
 from model_ui.segment_model import SegmentModel
 from ui.generated.ui_mainwindow import Ui_Sentence
 from view import preview
@@ -48,24 +47,17 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         # self.listView.indexesMoved.connect(self.table_index_change)
         self.listView.selectionChanged = self.table_index_change
+        self.segment_model.dataChanged.connect(self.data_changed)
 
         self.pushButton_add_sentence.clicked.connect(self.add_sentence)
 
         self.pushButton_sentence_edit.clicked.connect(self.edit_sentence)
-
-        self.pushButton_compute.clicked.connect(self.compute_sentence)
-
-        self.pushButton_cancel_compute.clicked.connect(self.cancel_compute)
 
         self.spinBox_index.valueChanged.connect(self.preview_combo)
         self.previewer = None
         self.threadpool = QtCore.QThreadPool()
 
         self.analyze_worker_list = []
-
-        # Change buttons when data changed or new segment selected
-        self.mapper.currentIndexChanged.connect(self.update_buttons)
-        self.segment_model.dataChanged.connect(self.update_buttons)
 
     def open_project(self, project):
         self.project = project
@@ -77,24 +69,6 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.mapper.setSubmitPolicy(QtWidgets.QDataWidgetMapper.ManualSubmit)
         self.mapper.addMapping(self.lineEdit_sentence, 0)
         self.mapper.addMapping(self.spinBox_index, 1)
-
-    def update_buttons(self, *args):
-        # TODO check this
-        selected_segment = self.get_selected_segment()
-
-        if not selected_segment:
-            self.pushButton_compute.setEnabled(False)
-            self.pushButton_cancel_compute.setEnabled(False)
-
-        if selected_segment.analysis_state == AnalysisState.NEED_ANALYSIS:
-            self.pushButton_compute.setEnabled(True)
-        else:
-            self.pushButton_compute.setEnabled(False)
-
-        if selected_segment.analysis_state == AnalysisState.ANALYZING:
-            self.pushButton_cancel_compute.setEnabled(True)
-        else:
-            self.pushButton_cancel_compute.setEnabled(False)
 
     @QtCore.Slot()
     def stackCleanChanged(self, is_clean):
@@ -122,18 +96,23 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self, self.tr("ALERTE"), message,
         )
 
-    def compute_sentence(self):
+    @QtCore.Slot()
+    def data_changed(self, topLeft, bottomRight, roles):
+        if topLeft.column() > 0 or QtCore.Qt.EditRole not in roles:
+            return
         if not self.project.are_videos_ready():
+            # TODO connect a signal
             self.pop_error_box(
                 "Toutes les vidéos n'ont pas été téléchargées ?"
             )
             return
         try:
-            segment = self.get_selected_segment()
+            segment = self.segment_model.get_segment_from_index(topLeft)
         except Exception as e:
             self.pop_error_box(str(e))
             return
-
+        if not segment.need_analysis():
+            return
         if self.previewer is not None:
             self.previewer.stop()
         preview.previewManager.cancel(segment)
@@ -155,6 +134,9 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         compute_worker.signals.finished.connect(compute_finish)
         compute_worker.signals.result.connect(compute_success)
         compute_worker.signals.error.connect(compute_error)
+        compute_worker.stateChanged.connect(
+            self.segment_model.analysis_state_changed
+        )
         self.threadpool.start(compute_worker)
 
     def cancel_compute(self):
@@ -224,7 +206,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         )
         try:
             self.open_project(load_project(path))
-            self.command_stack.setClean(True)
+            self.command_stack.setClean()
         except EnvironmentError as e:
             QtWidgets.QMessageBox.information(
                 self, self.tr("Unable to open file"), e.args[0]
@@ -239,7 +221,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
     def _save(self):
         try:
             self.project.save()
-            self.command_stack.setClean(True)
+            self.command_stack.setClean()
         except EnvironmentError as e:
             QtWidgets.QMessageBox.information(
                 self, self.tr("Unable to open file"), e.args[0],
@@ -258,17 +240,17 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self._save()
 
     def collect_combos(self, strict=True):
-        if strict and not len(self.segment_model.ordered_segments) == 0:
+        if strict and len(self.segment_model.ordered_segments) == 0:
             raise Exception("No segment found")
 
         phonems = []
         for ordered_segment in self.segment_model.ordered_segments:
-            segment = ordered_segment.get_associated_segment()
-            if not segment.combos:
+            #            segment = ordered_segment.get_associated_segment()
+            if ordered_segment.get_associated_segment().need_analysis():
                 if strict:
                     raise Exception("A segment have not been analyzed")
             else:
-                combo = segment.get_chosen_combo()
+                combo = ordered_segment.get_chosen_combo()
                 phonems.extend(combo.get_audio_phonems())
 
         return phonems
