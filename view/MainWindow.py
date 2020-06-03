@@ -89,6 +89,13 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
     def table_index_change(self, current, _previous):
         self.mapper.setCurrentIndex(current.row())
 
+        if current.row() == -1:
+            self.pushButton_remove_sentence.setDisabled(True)
+            self.spinBox_index.setDisabled(True)
+        else:
+            self.pushButton_remove_sentence.setDisabled(False)
+            self.spinBox_index.setDisabled(False)
+
     def pop_error_box(self, message):
         print(message)
         QtWidgets.QMessageBox.information(
@@ -125,7 +132,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             )
 
         def compute_error(err):
-            print(err)
+            self.pop_error_box(err)
 
         compute_worker = AnalyzeWorker(segment)
         self.analyze_worker_list.append(compute_worker)
