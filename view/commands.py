@@ -74,3 +74,51 @@ class RemoveSegmentCommand(QtWidgets.QUndoCommand):
         self.list_view.selectionModel().setCurrentIndex(
             index, QtCore.QItemSelectionModel.ClearAndSelect
         )
+
+
+class DragDropCommand(QtWidgets.QUndoCommand):
+    def __init__(self, segment_model, row_segments):
+        QtWidgets.QUndoCommand.__init__(
+            self,
+            f"drag segment "
+            + ", ".join(
+                f"{from_} to {to_}" for from_, to_, combo in row_segments
+            ),
+        )
+        self.segment_model = segment_model
+        self.row_segments = row_segments
+
+        self.actions = [
+            x
+            for from_, to_, combo in row_segments
+            for x in [[False, from_, combo], [True, to_, combo]]
+        ]
+        for i in range(len(self.actions)):
+            insert, row, _ = self.actions[i]
+            for j in range(i, len(self.actions)):
+                if self.actions[j][1] > row:
+                    self.actions[j][1] += 1 if insert else -1
+
+    def execute(self, invert):
+        itera = reversed(self.actions) if invert else self.actions
+        for insert, row, combo in itera:
+            if insert ^ invert:
+                self.segment_model.insertRow(row)
+                self.segment_model.setData(
+                    self.segment_model.index(row, Columns.sentence.value),
+                    combo.sentence,
+                    QtCore.Qt.EditRole,
+                )
+                self.segment_model.setData(
+                    self.segment_model.index(row, Columns.combo_index.value),
+                    combo.index,
+                    QtCore.Qt.EditRole,
+                )
+            else:
+                self.segment_model.removeRow(row)
+
+    def undo(self):
+        self.execute(True)
+
+    def redo(self):
+        self.execute(False)

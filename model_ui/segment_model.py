@@ -3,7 +3,9 @@ from enum import Enum
 
 import PySide2.QtCore as QtCore
 import PySide2.QtGui as QtGui
+import PySide2.QtWidgets as QtWidgets
 
+import view.commands as commands
 from data_model.segment import Segment
 from worker import AnalysisState
 
@@ -72,6 +74,7 @@ class SegmentModel(QtCore.QAbstractTableModel):
         QtCore.QAbstractTableModel.__init__(self, *args, **kwargs)
         self.project = project
         self.ordered_segments = []
+        self.command_stack = QtWidgets.QUndoStack()
 
     def get_segment_from_index(self, index):
         return self.get_chosen_from_index(index).get_associated_segment()
@@ -128,12 +131,6 @@ class SegmentModel(QtCore.QAbstractTableModel):
         ):
             self._set_attribute_from_index(index, value)
             self.dataChanged.emit(index, index, [role])
-        # Used by drag and drog
-        elif role == QtCore.Qt.UserRole:
-            self.ordered_segments[index.row()] = value
-            topleft = index.sibling(0, index.row())
-            bottomright = index.sibling(self.columnCount(index), index.row())
-            self.dataChanged.emit(topleft, bottomright, [role])
         else:
             return False
         return True
@@ -211,33 +208,24 @@ class SegmentModel(QtCore.QAbstractTableModel):
         return mimeData
 
     def dropMimeData(self, data, action, row, column, parent=None):
-        dropData = json.loads(bytes(data.data("text/json")))
-        row_segments = list(
-            map(
-                lambda x: (
-                    x[0],
-                    ChosenCombo.from_JSON_serializable(self.project, x[1]),
-                ),
-                dropData,
+        if action == QtCore.Qt.DropAction.MoveAction:
+            dropData = json.loads(bytes(data.data("text/json")))
+            row_segments = list(
+                map(
+                    lambda x: (
+                        x[0],
+                        ChosenCombo.from_JSON_serializable(self.project, x[1]),
+                    ),
+                    dropData,
+                )
             )
-        )
 
-        row_segments.sort(key=lambda x: x[0], reverse=False)
-        drag_rows, segments = zip(*row_segments)
+            row_segments.sort(key=lambda x: x[0], reverse=True)
+            row_segments = [
+                (from_, row, combo) for from_, combo in row_segments
+            ]
 
-        if row != -1:
-            insert_shifter = 0
-            for i, drag_row in enumerate(drag_rows):
-                self.removeRow(drag_row - i)
-                if row >= drag_row:
-                    insert_shifter += 1
-
-            for segment in reversed(segments):
-                adapted_row = row - insert_shifter
-
-                self.insertRow(adapted_row)
-                self.setData(
-                    self.index(adapted_row, 0, QtCore.QModelIndex()),
-                    segment,
-                    QtCore.Qt.UserRole,
+            if row != -1:
+                self.command_stack.push(
+                    commands.DragDropCommand(self, row_segments)
                 )

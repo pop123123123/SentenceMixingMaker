@@ -21,14 +21,6 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         Ui_Sentence.__init__(self)
         self.setupUi(self)
 
-        self.command_stack = QtWidgets.QUndoStack()
-        self.actionUndo.triggered.connect(self.command_stack.undo)
-        self.actionRedo.triggered.connect(self.command_stack.redo)
-
-        self.command_stack.canUndoChanged.connect(self.actionUndo.setEnabled)
-        self.command_stack.canRedoChanged.connect(self.actionRedo.setEnabled)
-        self.command_stack.cleanChanged.connect(self.stackCleanChanged)
-
         self.actionNew.triggered.connect(self.new)
         self.actionOpen.triggered.connect(self.open)
         self.actionSave_as.triggered.connect(self.save_as)
@@ -44,6 +36,23 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         self.mapper = QtWidgets.QDataWidgetMapper()
         self.open_project(project)
+
+        self.actionUndo.triggered.connect(
+            self.segment_model.command_stack.undo
+        )
+        self.actionRedo.triggered.connect(
+            self.segment_model.command_stack.redo
+        )
+
+        self.segment_model.command_stack.canUndoChanged.connect(
+            self.actionUndo.setEnabled
+        )
+        self.segment_model.command_stack.canRedoChanged.connect(
+            self.actionRedo.setEnabled
+        )
+        self.segment_model.command_stack.cleanChanged.connect(
+            self.stackCleanChanged
+        )
 
         # self.listView.indexesMoved.connect(self.table_index_change)
         self.listView.currentChanged = self.table_index_change
@@ -80,14 +89,14 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         command = commands.AddSegmentCommand(
             self.segment_model, self.listView, i, i + 1
         )
-        self.command_stack.push(command)
+        self.segment_model.command_stack.push(command)
 
     def remove_sentence(self):
         i = self.get_selected_i()
         command = commands.RemoveSegmentCommand(
             self.segment_model, self.listView, i
         )
-        self.command_stack.push(command)
+        self.segment_model.command_stack.push(command)
 
     def edit_sentence(self):
         self.mapper.submit()
@@ -200,7 +209,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         findDialog = NewProjectDialog(self)
         seed, urls = findDialog.get_project_settings()
         self.open_project(Project(None, seed, urls))
-        self.command_stack.resetClean()
+        self.segment_model.command_stack.resetClean()
 
     def open(self):
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
@@ -211,7 +220,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         )
         try:
             self.open_project(load_project(path))
-            self.command_stack.setClean()
+            self.segment_model.command_stack.setClean()
         except EnvironmentError as e:
             QtWidgets.QMessageBox.information(
                 self, self.tr("Unable to open file"), e.args[0]
@@ -226,7 +235,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
     def _save(self):
         try:
             self.project.save()
-            self.command_stack.setClean()
+            self.segment_model.command_stack.setClean()
         except EnvironmentError as e:
             QtWidgets.QMessageBox.information(
                 self, self.tr("Unable to open file"), e.args[0],
