@@ -184,9 +184,17 @@ class SegmentModel(QtCore.QAbstractTableModel):
         default_flags = super().flags(index)
 
         if index.isValid():
-            return QtCore.Qt.ItemFlag.ItemIsDragEnabled | default_flags
+            return (
+                QtCore.Qt.ItemFlag.ItemIsEditable
+                | QtCore.Qt.ItemFlag.ItemIsDragEnabled
+                | default_flags
+            )
         else:
-            return QtCore.Qt.ItemFlag.ItemIsDropEnabled | default_flags
+            return (
+                QtCore.Qt.ItemFlag.ItemIsEditable
+                | QtCore.Qt.ItemFlag.ItemIsDropEnabled
+                | default_flags
+            )
 
     def supportedDragActions(self):
         return QtCore.Qt.MoveAction

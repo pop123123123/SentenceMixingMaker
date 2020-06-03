@@ -52,8 +52,6 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.pushButton_add_sentence.clicked.connect(self.add_sentence)
         self.pushButton_remove_sentence.clicked.connect(self.remove_sentence)
 
-        self.pushButton_sentence_edit.clicked.connect(self.edit_sentence)
-
         self.spinBox_index.valueChanged.connect(self.preview_combo)
         self.previewer = None
         self.threadpool = QtCore.QThreadPool()
@@ -67,8 +65,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         self.mapper.clearMapping()
         self.mapper.setModel(self.segment_model)
-        self.mapper.setSubmitPolicy(QtWidgets.QDataWidgetMapper.ManualSubmit)
-        self.mapper.addMapping(self.lineEdit_sentence, 0)
+        self.mapper.setSubmitPolicy(QtWidgets.QDataWidgetMapper.AutoSubmit)
         self.mapper.addMapping(self.spinBox_index, 1)
 
     @QtCore.Slot()
@@ -88,9 +85,6 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.segment_model, self.listView, i
         )
         self.command_stack.push(command)
-
-    def edit_sentence(self):
-        self.mapper.submit()
 
     def table_index_change(self, current, _previous):
         self.mapper.setCurrentIndex(current.row())
