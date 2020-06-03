@@ -1,9 +1,10 @@
 # This Python file uses the following encoding: utf-8
+import json
 import sys
 
+import sentence_mixing as sm
 from PySide2 import QtCore
 from PySide2.QtWidgets import QApplication
-from sentence_mixing import sentence_mixer
 from sentence_mixing.video_creator.download import dl_video
 
 from data_model.project import Project
@@ -13,7 +14,7 @@ from worker import Worker
 
 def download_video_and_audio(urls):
     vid_paths = list(map(dl_video, urls))
-    videos = sentence_mixer.get_videos(urls)
+    videos = sm.sentence_mixer.get_videos(urls)
 
     for video, path in zip(videos, vid_paths):
         n = len(video._base_path)
@@ -30,7 +31,13 @@ if __name__ == "__main__":
 
     project = Project("/tmp/lol", 0, [vids],)
 
-    sentence_mixer.prepare_sm("/home/louis/projets/sentence/config.json")
+    config_path = "config.json"
+    with open(config_path) as f:
+        config = json.load(f)
+    if "NODES" in config:
+        sm.logic.parameters.NODES = config["NODES"]
+
+    sm.sentence_mixer.prepare_sm_config_dict(config)
 
     worker = Worker(download_video_and_audio, vids)
     worker.signals.result.connect(project.set_videos)

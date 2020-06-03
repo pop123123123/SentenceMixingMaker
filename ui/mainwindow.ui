@@ -109,18 +109,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QLineEdit" name="lineEdit_sentence"/>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButton_sentence_edit">
-        <property name="text">
-         <string>Submit</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+     <layout class="QHBoxLayout" name="horizontalLayout"/>
     </item>
     <item>
      <layout class="QVBoxLayout" name="video_layout">
@@ -170,7 +159,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>23</height>
+     <height>32</height>
     </rect>
    </property>
    <widget class="QMenu" name="menucoucou">
@@ -291,8 +280,6 @@
   <tabstop>listView</tabstop>
   <tabstop>pushButton_add_sentence</tabstop>
   <tabstop>pushButton_3</tabstop>
-  <tabstop>lineEdit_sentence</tabstop>
-  <tabstop>pushButton_sentence_edit</tabstop>
  </tabstops>
  <resources/>
  <connections/>

@@ -61,8 +61,6 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.pushButton_add_sentence.clicked.connect(self.add_sentence)
         self.pushButton_remove_sentence.clicked.connect(self.remove_sentence)
 
-        self.pushButton_sentence_edit.clicked.connect(self.edit_sentence)
-
         self.spinBox_index.valueChanged.connect(self.preview_combo)
         self.previewer = None
         self.threadpool = QtCore.QThreadPool()
@@ -76,8 +74,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         self.mapper.clearMapping()
         self.mapper.setModel(self.segment_model)
-        self.mapper.setSubmitPolicy(QtWidgets.QDataWidgetMapper.ManualSubmit)
-        self.mapper.addMapping(self.lineEdit_sentence, 0)
+        self.mapper.setSubmitPolicy(QtWidgets.QDataWidgetMapper.AutoSubmit)
         self.mapper.addMapping(self.spinBox_index, 1)
 
     @QtCore.Slot()
@@ -98,11 +95,15 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         )
         self.segment_model.command_stack.push(command)
 
-    def edit_sentence(self):
-        self.mapper.submit()
-
     def table_index_change(self, current, _previous):
         self.mapper.setCurrentIndex(current.row())
+
+        if current.row() == -1:
+            self.pushButton_remove_sentence.setDisabled(True)
+            self.spinBox_index.setDisabled(True)
+        else:
+            self.pushButton_remove_sentence.setDisabled(False)
+            self.spinBox_index.setDisabled(False)
 
     def pop_error_box(self, message):
         print(message)
@@ -140,7 +141,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             )
 
         def compute_error(err):
-            print(err)
+            self.pop_error_box(err)
 
         compute_worker = AnalyzeWorker(segment)
         self.analyze_worker_list.append(compute_worker)
