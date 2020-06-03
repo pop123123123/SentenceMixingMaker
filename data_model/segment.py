@@ -95,7 +95,7 @@ class Segment:
         return len(self.combos) == 0
 
     def need_analysis(self):
-        return len(self.combos) == 0
+        return len(self.combos) == 0 and self._sentence != ""
 
     def set_combos(self, combos):
         self.combos = combos

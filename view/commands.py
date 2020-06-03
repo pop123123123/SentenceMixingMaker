@@ -18,12 +18,16 @@ class AddSegmentCommand(QtWidgets.QUndoCommand):
     def undo(self):
         self.segment_model.removeRow(self.new_row)
         index = self.segment_model.createIndex(self.previous_selected_row, 0)
-        self.list_view.setCurrentIndex(index)
+        self.list_view.selectionModel().setCurrentIndex(
+            index, QtCore.QItemSelectionModel.ClearAndSelect
+        )
 
     def redo(self):
         self.segment_model.insertRow(self.new_row)
         index = self.segment_model.createIndex(self.new_row, 0)
-        self.list_view.setCurrentIndex(index)
+        self.list_view.selectionModel().setCurrentIndex(
+            index, QtCore.QItemSelectionModel.ClearAndSelect
+        )
 
 
 class RemoveSegmentCommand(QtWidgets.QUndoCommand):
@@ -47,7 +51,9 @@ class RemoveSegmentCommand(QtWidgets.QUndoCommand):
         self.segment_model.setData(sentence_index, self.sentence)
         self.segment_model.setData(combo_index_index, self.combo_index)
 
-        self.list_view.setCurrentIndex(sentence_index)
+        self.list_view.selectionModel().setCurrentIndex(
+            sentence_index, QtCore.QItemSelectionModel.ClearAndSelect
+        )
 
     def redo(self):
         sentence_index = self.segment_model.createIndex(
@@ -65,4 +71,6 @@ class RemoveSegmentCommand(QtWidgets.QUndoCommand):
 
         self.segment_model.removeRow(self.row)
         index = self.segment_model.createIndex(self.row - 1, 0)
-        self.list_view.setCurrentIndex(index)
+        self.list_view.selectionModel().setCurrentIndex(
+            index, QtCore.QItemSelectionModel.ClearAndSelect
+        )
