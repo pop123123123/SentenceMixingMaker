@@ -1,6 +1,6 @@
 from PySide2 import QtCore, QtWidgets
 
-from model_ui.segment_model import Columns
+import model_ui.segment_model as segm
 
 
 class AddSegmentCommand(QtWidgets.QUndoCommand):
@@ -43,10 +43,10 @@ class RemoveSegmentCommand(QtWidgets.QUndoCommand):
     def undo(self):
         self.segment_model.insertRow(self.row)
         sentence_index = self.segment_model.createIndex(
-            self.row, Columns.sentence.value
+            self.row, segm.Columns.sentence.value
         )
         combo_index_index = self.segment_model.createIndex(
-            self.row, Columns.combo_index.value
+            self.row, segm.Columns.combo_index.value
         )
         self.segment_model.setData(sentence_index, self.sentence)
         self.segment_model.setData(combo_index_index, self.combo_index)
@@ -57,10 +57,10 @@ class RemoveSegmentCommand(QtWidgets.QUndoCommand):
 
     def redo(self):
         sentence_index = self.segment_model.createIndex(
-            self.row, Columns.sentence.value
+            self.row, segm.Columns.sentence.value
         )
         combo_index_index = self.segment_model.createIndex(
-            self.row, Columns.combo_index.value
+            self.row, segm.Columns.combo_index.value
         )
         self.sentence = self.segment_model.data(
             sentence_index, QtCore.Qt.EditRole
@@ -105,12 +105,14 @@ class DragDropCommand(QtWidgets.QUndoCommand):
             if insert ^ invert:
                 self.segment_model.insertRow(row)
                 self.segment_model.setData(
-                    self.segment_model.index(row, Columns.sentence.value),
+                    self.segment_model.index(row, segm.Columns.sentence.value),
                     combo.sentence,
                     QtCore.Qt.EditRole,
                 )
                 self.segment_model.setData(
-                    self.segment_model.index(row, Columns.combo_index.value),
+                    self.segment_model.index(
+                        row, segm.Columns.combo_index.value
+                    ),
                     combo.index,
                     QtCore.Qt.EditRole,
                 )

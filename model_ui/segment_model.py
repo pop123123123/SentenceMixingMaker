@@ -5,7 +5,7 @@ import PySide2.QtCore as QtCore
 import PySide2.QtGui as QtGui
 import PySide2.QtWidgets as QtWidgets
 
-import view.commands as commands
+import view.commands
 from data_model.segment import Segment
 from worker import AnalysisState
 
@@ -235,5 +235,5 @@ class SegmentModel(QtCore.QAbstractTableModel):
 
             if row != -1:
                 self.command_stack.push(
-                    commands.DragDropCommand(self, row_segments)
+                    view.commands.DragDropCommand(self, row_segments)
                 )
