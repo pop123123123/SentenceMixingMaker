@@ -97,6 +97,9 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
     def table_index_change(self, current, _previous):
         self.mapper.setCurrentIndex(current.row())
+        preview.previewManager.cancel(
+            self.segment_model.get_segment_from_index(_previous)
+        )
 
         if current.row() == -1:
             self.pushButton_remove_sentence.setDisabled(True)
@@ -182,13 +185,19 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
     @QtCore.Slot()
     def _preview_combo(self, previewer):
-        if previewer is not None:
+        current_combo = self.segment_model.get_chosen_from_index(
+            self.get_selected_index()
+        ).get_chosen_combo()
+        if previewer is not None and (
+            previewer.combo is None or current_combo == previewer.combo
+        ):
             if self.previewer is not None:
                 self.previewer.stop()
             self.previewer = previewer
             self.previewer.run(self.pixmap, self.graphicsView, True)
 
     def preview_combo(self, i):
+        self.mapper.submit()
         if self.previewer is not None:
             self.previewer.stop()
         segment = self.get_selected_segment()

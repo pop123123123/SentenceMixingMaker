@@ -41,6 +41,7 @@ def get_format(rate, wave):
 
 class Previewer:
     def __init__(self, combo, fps=15):
+        self.combo = combo
 
         # audio
         if combo is not None:
@@ -74,6 +75,9 @@ class Previewer:
                 clip.get_frame(t)[::4, ::4].copy(order="C")
                 for t in np.arange(0, clip.duration, self.period_ms)
             ]
+
+    def __repr__(self):
+        return f"<Preview for combo {self.combo}>"
 
     def run(self, pixmap, graphics_view, loop=False):
         self.loop = loop
@@ -136,6 +140,9 @@ class Cancellation:
 
     def is_cancelled(self):
         return self.cancelled
+
+    def __repr__(self):
+        return f"<Cancellation: {str(self.cancelled)}>"
 
 
 class __PreviewManager:
@@ -216,10 +223,10 @@ class __PreviewManager:
                 self.queue.release(1)
         self.set_first(None)
         if job.is_cancelled():
+            self.queue.release(1)
+            self.delete_job(combo, job)
             return
         p = Previewer(combo)
-        if job.is_cancelled():
-            return p
         self.previous_lock.lockForWrite()
         self.previews[combo] = p
         self.previous_lock.unlock()
@@ -232,6 +239,8 @@ class __PreviewManager:
         p = None
         for c in combos:
             if c.segment not in cancelled_segments:
+                self.jobs_lock.lockForRead()
+                self.jobs_lock.unlock()
                 p = self.get_preview(c)
                 if p is None:
                     cancelled_segments.add(c.segment)

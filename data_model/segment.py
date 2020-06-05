@@ -35,6 +35,9 @@ class Combo:
     def __hash__(self):
         return hash((self.segment._sentence, self.get_index()))
 
+    def __repr__(self):
+        return str((self.segment._sentence, self.get_index()))
+
     def get_index(self):
         return self.segment.get_combo_index(self)
 
