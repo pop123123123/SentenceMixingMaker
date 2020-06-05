@@ -30,6 +30,34 @@ class AddSegmentCommand(QtWidgets.QUndoCommand):
         )
 
 
+class EditSegmentCommand(QtWidgets.QUndoCommand):
+    def __init__(self, segment_model, index, old_value, new_value, role):
+        QtWidgets.QUndoCommand.__init__(
+            self, f"edit segment at index {index.row()}"
+        )
+        self.segment_model = segment_model
+        self.index = index
+        self.old_value = old_value
+        self.new_value = new_value
+        self.role = role
+
+    def undo(self):
+        self.segment_model._set_attribute_from_index(
+            self.index, self.old_value
+        )
+        self.segment_model.dataChanged.emit(
+            self.index, self.index, [self.role]
+        )
+
+    def redo(self):
+        self.segment_model._set_attribute_from_index(
+            self.index, self.new_value
+        )
+        self.segment_model.dataChanged.emit(
+            self.index, self.index, [self.role]
+        )
+
+
 class RemoveSegmentCommand(QtWidgets.QUndoCommand):
     def __init__(self, segment_model, list_view, row):
         QtWidgets.QUndoCommand.__init__(self, f"remove segment {row}")

@@ -129,8 +129,11 @@ class SegmentModel(QtCore.QAbstractTableModel):
             or role == QtCore.Qt.DisplayRole
             or role == QtCore.Qt.DecorationRole
         ):
-            self._set_attribute_from_index(index, value)
-            self.dataChanged.emit(index, index, [role])
+
+            command = view.commands.EditSegmentCommand(
+                self, index, self.get_attribute_from_index(index), value, role
+            )
+            self.command_stack.push(command)
         else:
             return False
         return True
