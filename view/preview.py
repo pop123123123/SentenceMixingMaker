@@ -101,6 +101,18 @@ class Previewer:
         self.display_frame()
         self.graphics_view.fitInView(self.pixmap, QtCore.Qt.KeepAspectRatio)
 
+    def pause(self):
+        if self.timer is not None:
+            self.timer.stop()
+        if self.audio_output is not None:
+            self.audio_output.suspend()
+
+    def unpause(self):
+        if self.timer is not None:
+            self.timer.start()
+        if self.audio_output is not None:
+            self.audio_output.resume()
+
     def stop(self):
         if self.timer is not None:
             self.timer.stop()
