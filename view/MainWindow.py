@@ -16,7 +16,7 @@ from worker import AnalyzeWorker, Worker, WorkerSignals
 
 
 class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
-    def __init__(self, project):
+    def __init__(self, project, video_dl_worker):
         QtWidgets.QMainWindow.__init__(self)
         Ui_Sentence.__init__(self)
         self.setupUi(self)
@@ -65,6 +65,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.previewer = None
         self.threadpool = QtCore.QThreadPool()
 
+        self.video_dl_worker = video_dl_worker
         self.analyze_worker_list = []
 
         self.show_warning_message = True
@@ -145,44 +146,54 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
     def data_changed(self, topLeft, bottomRight, roles):
         if topLeft.column() > 0 or QtCore.Qt.EditRole not in roles:
             return
-        if not self.project.are_videos_ready():
-            # TODO connect a signal
-            self.pop_warning_box(
-                "Les vidéos sont en cours de téléchargement. L'analyse du segment débutera automatiquement."
-            )
-            return
+
         try:
             segment = self.segment_model.get_segment_from_index(topLeft)
         except Exception as e:
             self.pop_error_box(str(e))
             return
+
+        def launch_compute():
+            def compute_finish():
+                filter(
+                    lambda x: x.segment != segment, self.analyze_worker_list
+                )
+
+            def compute_success(_):
+                preview.previewManager.compute_previews(
+                    self.threadpool, segment.combos[:10]
+                )
+
+            def compute_error(err):
+                self.pop_error_box(err)
+
+            compute_worker = AnalyzeWorker(segment)
+            self.analyze_worker_list.append(compute_worker)
+
+            compute_worker.signals.finished.connect(compute_finish)
+            compute_worker.signals.result.connect(compute_success)
+            compute_worker.signals.error.connect(compute_error)
+            compute_worker.stateChanged.connect(
+                self.segment_model.analysis_state_changed
+            )
+            self.threadpool.start(compute_worker)
+
+        if not self.project.are_videos_ready():
+            # TODO connect a signal
+            self.pop_warning_box(
+                "Les vidéos sont en cours de téléchargement. L'analyse du segment débutera automatiquement."
+            )
+            self.video_dl_worker.signals.finished.connect(launch_compute)
+            return
+
         if not segment.need_analysis():
             return
+
         if self.previewer is not None:
             self.previewer.stop()
         preview.previewManager.cancel(segment)
 
-        def compute_finish():
-            filter(lambda x: x.segment != segment, self.analyze_worker_list)
-
-        def compute_success(_):
-            preview.previewManager.compute_previews(
-                self.threadpool, segment.combos[:10]
-            )
-
-        def compute_error(err):
-            self.pop_error_box(err)
-
-        compute_worker = AnalyzeWorker(segment)
-        self.analyze_worker_list.append(compute_worker)
-
-        compute_worker.signals.finished.connect(compute_finish)
-        compute_worker.signals.result.connect(compute_success)
-        compute_worker.signals.error.connect(compute_error)
-        compute_worker.stateChanged.connect(
-            self.segment_model.analysis_state_changed
-        )
-        self.threadpool.start(compute_worker)
+        launch_compute()
 
     def cancel_compute(self):
         segment = self.get_selected_segment()
