@@ -98,7 +98,7 @@
          </spacer>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_3">
+         <widget class="QPushButton" name="pushButton_preview">
           <property name="text">
            <string>Preview</string>
           </property>
@@ -286,7 +286,7 @@
  <tabstops>
   <tabstop>listView</tabstop>
   <tabstop>pushButton_add_sentence</tabstop>
-  <tabstop>pushButton_3</tabstop>
+  <tabstop>pushButton_preview</tabstop>
  </tabstops>
  <resources/>
  <connections/>

@@ -88,10 +88,10 @@ class Ui_Sentence(object):
 
         self.horizontalLayout_2.addItem(self.horizontalSpacer)
 
-        self.pushButton_3 = QPushButton(self.centralwidget)
-        self.pushButton_3.setObjectName(u"pushButton_3")
+        self.pushButton_preview = QPushButton(self.centralwidget)
+        self.pushButton_preview.setObjectName(u"pushButton_preview")
 
-        self.horizontalLayout_2.addWidget(self.pushButton_3)
+        self.horizontalLayout_2.addWidget(self.pushButton_preview)
 
 
         self.verticalLayout.addLayout(self.horizontalLayout_2)
@@ -146,7 +146,7 @@ class Ui_Sentence(object):
         self.statusbar.setObjectName(u"statusbar")
         Sentence.setStatusBar(self.statusbar)
         QWidget.setTabOrder(self.listView, self.pushButton_add_sentence)
-        QWidget.setTabOrder(self.pushButton_add_sentence, self.pushButton_3)
+        QWidget.setTabOrder(self.pushButton_add_sentence, self.pushButton_preview)
 
         self.menubar.addAction(self.menucoucou.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
@@ -214,7 +214,7 @@ class Ui_Sentence(object):
         self.label.setText(QCoreApplication.translate("Sentence", u"Sentences", None))
         self.pushButton_add_sentence.setText(QCoreApplication.translate("Sentence", u"Add", None))
         self.pushButton_remove_sentence.setText(QCoreApplication.translate("Sentence", u"Remove", None))
-        self.pushButton_3.setText(QCoreApplication.translate("Sentence", u"Preview", None))
+        self.pushButton_preview.setText(QCoreApplication.translate("Sentence", u"Preview", None))
         self.preview_checkBox.setText(QCoreApplication.translate("Sentence", u"Real-time preview", None))
         self.menucoucou.setTitle(QCoreApplication.translate("Sentence", u"Fi&le", None))
         self.menuEdit.setTitle(QCoreApplication.translate("Sentence", u"&Edit", None))

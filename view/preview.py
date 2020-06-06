@@ -40,12 +40,14 @@ def get_format(rate, wave):
 
 
 class Previewer:
-    def __init__(self, combo, fps=15):
+    def __init__(self, combo, fps=15, audio_phonems=None):
         self.combo = combo
 
         # audio
-        if combo is not None:
-            rate, wave = concat_segments(combo.get_audio_phonems())
+        if combo is not None or audio_phonems is not None:
+            if audio_phonems is None:
+                audio_phonems = combo.get_audio_phonems()
+            rate, wave = concat_segments(audio_phonems)
             self.audio_format = get_format(rate, wave)
             self.data = QtCore.QByteArray(wave.tobytes(order="C"))
             self.audio_input = QtCore.QBuffer(self.data)
@@ -62,14 +64,11 @@ class Previewer:
         self.t = 0
         self.period_ms = 1.0 / fps
 
-        if combo is None:
+        if audio_phonems is None:
             self.frames = get_loading_frames(fps)
         else:
             clip = concatenate_videoclips(
-                [
-                    phonem.get_video_clip()
-                    for phonem in combo.get_audio_phonems()
-                ]
+                [phonem.get_video_clip() for phonem in audio_phonems]
             )
             self.frames = [
                 clip.get_frame(t)[::4, ::4].copy(order="C")
