@@ -119,11 +119,12 @@ class RemoveSegmentCommand(QtWidgets.QUndoCommand):
             self.segment_model.data(combo_index_index, QtCore.Qt.EditRole)
         )
 
-        self.segment_model.removeRow(self.row)
         index = self.segment_model.createIndex(self.row - 1, 0)
         self.list_view.selectionModel().setCurrentIndex(
             index, QtCore.QItemSelectionModel.ClearAndSelect
         )
+        # Remove the row AFTER changing the index, to prevent inconsistencies
+        self.segment_model.removeRow(self.row)
 
 
 class DragDropCommand(QtWidgets.QUndoCommand):
