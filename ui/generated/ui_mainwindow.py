@@ -125,13 +125,18 @@ class Ui_Sentence(object):
 
         self.horizontalLayout_3.addItem(self.horizontalSpacer_2)
 
+        self.preview_checkBox = QCheckBox(self.centralwidget)
+        self.preview_checkBox.setObjectName(u"preview_checkBox")
+
+        self.horizontalLayout_3.addWidget(self.preview_checkBox)
+
 
         self.verticalLayout_2.addLayout(self.horizontalLayout_3)
 
         Sentence.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(Sentence)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 800, 32))
+        self.menubar.setGeometry(QRect(0, 0, 800, 23))
         self.menucoucou = QMenu(self.menubar)
         self.menucoucou.setObjectName(u"menucoucou")
         self.menuEdit = QMenu(self.menubar)
@@ -210,6 +215,7 @@ class Ui_Sentence(object):
         self.pushButton_add_sentence.setText(QCoreApplication.translate("Sentence", u"Add", None))
         self.pushButton_remove_sentence.setText(QCoreApplication.translate("Sentence", u"Remove", None))
         self.pushButton_3.setText(QCoreApplication.translate("Sentence", u"Preview", None))
+        self.preview_checkBox.setText(QCoreApplication.translate("Sentence", u"Real-time preview", None))
         self.menucoucou.setTitle(QCoreApplication.translate("Sentence", u"Fi&le", None))
         self.menuEdit.setTitle(QCoreApplication.translate("Sentence", u"&Edit", None))
     # retranslateUi

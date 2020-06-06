@@ -60,6 +60,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         self.pushButton_add_sentence.clicked.connect(self.add_sentence)
         self.pushButton_remove_sentence.clicked.connect(self.remove_sentence)
+        self.preview_checkBox.clicked.connect(self.pause)
 
         self.spinBox_index.valueChanged.connect(self.preview_combo)
         self.previewer = None
@@ -110,6 +111,13 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         else:
             self.pushButton_remove_sentence.setDisabled(False)
             self.spinBox_index.setDisabled(False)
+
+    def pause(self, state):
+        if self.previewer is not None:
+            if state:
+                self.previewer.unpause()
+            else:
+                self.previewer.pause()
 
     def pop_error_box(self, message):
         print(message)
@@ -231,6 +239,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         ):
             if self.previewer is not None:
                 self.previewer.stop()
+            self.preview_checkBox.setChecked(True)
             self.previewer = previewer
             self.previewer.run(self.pixmap, self.graphicsView, True)
 
