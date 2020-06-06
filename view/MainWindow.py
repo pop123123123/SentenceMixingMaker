@@ -264,12 +264,11 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self._save()
 
     def collect_combos(self, strict=True):
-        if strict and len(self.segment_model.ordered_segments) == 0:
+        if strict and self.segment_model.is_empty():
             raise Exception("No segment found")
 
         phonems = []
-        for ordered_segment in self.segment_model.ordered_segments:
-            #            segment = ordered_segment.get_associated_segment()
+        for ordered_segment in self.segment_model.get_ordered_segments():
             if ordered_segment.get_associated_segment().need_analysis():
                 if strict:
                     raise Exception("A segment have not been analyzed")

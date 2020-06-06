@@ -44,6 +44,7 @@ class Project:
         self.urls = urls
         self.videos = None
         self.segments = {}
+        self.ordered_segments = []
 
     def set_videos(self, videos):
         assert not self.are_videos_ready()
