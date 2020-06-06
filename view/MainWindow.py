@@ -92,6 +92,8 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.segment_model.command_stack.push(command)
 
     def remove_sentence(self):
+        self.cancel_compute(self.get_selected_segment())
+
         i = self.get_selected_i()
         command = commands.RemoveSegmentCommand(
             self.segment_model, self.listView, i
@@ -198,9 +200,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         launch_compute()
 
-    def cancel_compute(self):
-        segment = self.get_selected_segment()
-
+    def cancel_compute(self, segment):
         # Interrupts all analyzing threads corresponding to current segment
         list(
             map(
@@ -211,18 +211,22 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             )
         )
 
-    def get_selected_i(self):
+    def get_selected_index(self):
         if len(self.listView.selectionModel().selectedIndexes()) > 0:
+            return self.listView.selectionModel().selectedIndexes()[0]
+        return -1
+
+    def get_selected_i(self):
+        if self.get_selected_index() != -1:
             return self.listView.selectionModel().selectedIndexes()[0].row()
         return -1
 
-    def get_selected_index(self):
-        return self.listView.selectionModel().selectedIndexes()[0]
-
     def get_selected_segment(self):
-        return self.segment_model.get_segment_from_index(
-            self.get_selected_index()
-        )
+        if self.get_selected_index() != -1:
+            return self.segment_model.get_segment_from_index(
+                self.get_selected_index()
+            )
+        return -1
 
     @QtCore.Slot()
     def _preview_combo(self, previewer):
