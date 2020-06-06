@@ -1,6 +1,12 @@
+from enum import Enum
+
 from PySide2 import QtCore, QtWidgets
 
 import model_ui.segment_model as segm
+
+
+class CommandIds(Enum):
+    edit = 0
 
 
 class AddSegmentCommand(QtWidgets.QUndoCommand):
@@ -31,6 +37,8 @@ class AddSegmentCommand(QtWidgets.QUndoCommand):
 
 
 class EditSegmentCommand(QtWidgets.QUndoCommand):
+    mergeable_columns = {segm.Columns.combo_index.value}
+
     def __init__(self, segment_model, index, old_value, new_value, role):
         QtWidgets.QUndoCommand.__init__(
             self, f"edit segment at index {index.row()}"
@@ -56,6 +64,20 @@ class EditSegmentCommand(QtWidgets.QUndoCommand):
         self.segment_model.dataChanged.emit(
             self.index, self.index, [self.role]
         )
+
+    def id(self):
+        return CommandIds.edit.value
+
+    def mergeWith(self, other):
+        if (
+            other.id() != self.id()
+            or self.index.column() not in self.mergeable_columns
+            or self.role != other.role
+            or self.index != other.index
+        ):
+            return False
+        self.new_value = other.new_value
+        return True
 
 
 class RemoveSegmentCommand(QtWidgets.QUndoCommand):
