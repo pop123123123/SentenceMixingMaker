@@ -5,7 +5,7 @@ import PySide2.QtCore as QtCore
 import PySide2.QtGui as QtGui
 import PySide2.QtWidgets as QtWidgets
 
-import view.commands as commands
+import view.commands
 from data_model.segment import Segment
 from worker import AnalysisState
 
@@ -128,8 +128,11 @@ class SegmentModel(QtCore.QAbstractTableModel):
             or role == QtCore.Qt.DisplayRole
             or role == QtCore.Qt.DecorationRole
         ):
-            self._set_attribute_from_index(index, value)
-            self.dataChanged.emit(index, index, [role])
+
+            command = view.commands.EditSegmentCommand(
+                self, index, self.get_attribute_from_index(index), value, role
+            )
+            self.command_stack.push(command)
         else:
             return False
         return True
@@ -242,5 +245,5 @@ class SegmentModel(QtCore.QAbstractTableModel):
 
             if row != -1:
                 self.command_stack.push(
-                    commands.DragDropCommand(self, row_segments)
+                    view.commands.DragDropCommand(self, row_segments)
                 )

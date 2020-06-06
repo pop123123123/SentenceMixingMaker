@@ -1,6 +1,6 @@
 from PySide2 import QtCore, QtWidgets
 
-from model_ui.segment_model import Columns
+import model_ui.segment_model as segm
 
 
 class AddSegmentCommand(QtWidgets.QUndoCommand):
@@ -30,6 +30,34 @@ class AddSegmentCommand(QtWidgets.QUndoCommand):
         )
 
 
+class EditSegmentCommand(QtWidgets.QUndoCommand):
+    def __init__(self, segment_model, index, old_value, new_value, role):
+        QtWidgets.QUndoCommand.__init__(
+            self, f"edit segment at index {index.row()}"
+        )
+        self.segment_model = segment_model
+        self.index = index
+        self.old_value = old_value
+        self.new_value = new_value
+        self.role = role
+
+    def undo(self):
+        self.segment_model._set_attribute_from_index(
+            self.index, self.old_value
+        )
+        self.segment_model.dataChanged.emit(
+            self.index, self.index, [self.role]
+        )
+
+    def redo(self):
+        self.segment_model._set_attribute_from_index(
+            self.index, self.new_value
+        )
+        self.segment_model.dataChanged.emit(
+            self.index, self.index, [self.role]
+        )
+
+
 class RemoveSegmentCommand(QtWidgets.QUndoCommand):
     def __init__(self, segment_model, list_view, row):
         QtWidgets.QUndoCommand.__init__(self, f"remove segment {row}")
@@ -43,10 +71,10 @@ class RemoveSegmentCommand(QtWidgets.QUndoCommand):
     def undo(self):
         self.segment_model.insertRow(self.row)
         sentence_index = self.segment_model.createIndex(
-            self.row, Columns.sentence.value
+            self.row, segm.Columns.sentence.value
         )
         combo_index_index = self.segment_model.createIndex(
-            self.row, Columns.combo_index.value
+            self.row, segm.Columns.combo_index.value
         )
         self.segment_model.setData(sentence_index, self.sentence)
         self.segment_model.setData(combo_index_index, self.combo_index)
@@ -57,10 +85,10 @@ class RemoveSegmentCommand(QtWidgets.QUndoCommand):
 
     def redo(self):
         sentence_index = self.segment_model.createIndex(
-            self.row, Columns.sentence.value
+            self.row, segm.Columns.sentence.value
         )
         combo_index_index = self.segment_model.createIndex(
-            self.row, Columns.combo_index.value
+            self.row, segm.Columns.combo_index.value
         )
         self.sentence = self.segment_model.data(
             sentence_index, QtCore.Qt.EditRole
@@ -105,12 +133,14 @@ class DragDropCommand(QtWidgets.QUndoCommand):
             if insert ^ invert:
                 self.segment_model.insertRow(row)
                 self.segment_model.setData(
-                    self.segment_model.index(row, Columns.sentence.value),
+                    self.segment_model.index(row, segm.Columns.sentence.value),
                     combo.sentence,
                     QtCore.Qt.EditRole,
                 )
                 self.segment_model.setData(
-                    self.segment_model.index(row, Columns.combo_index.value),
+                    self.segment_model.index(
+                        row, segm.Columns.combo_index.value
+                    ),
                     combo.index,
                     QtCore.Qt.EditRole,
                 )

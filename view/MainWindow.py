@@ -67,6 +67,8 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         self.analyze_worker_list = []
 
+        self.show_warning_message = True
+
     def open_project(self, project):
         self.project = project
         self.segment_model = SegmentModel(project)
@@ -114,14 +116,39 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self, self.tr("ALERTE"), message,
         )
 
+    def pop_warning_box(self, message):
+        if self.show_warning_message:
+
+            def check_changed(state):
+                # Checked
+                if state == 2:
+                    self.show_warning_message = False
+                else:
+                    self.show_warning_message = True
+
+            warning_box = QtWidgets.QMessageBox(self)
+            warning_box.setText(message)
+            warning_box.setIcon(QtWidgets.QMessageBox.Warning)
+            warning_box.addButton(QtWidgets.QMessageBox.Ok)
+            warning_box.setDefaultButton(QtWidgets.QMessageBox.Ok)
+
+            cb = QtWidgets.QCheckBox(
+                "Ne plus afficher ce message", warning_box
+            )
+            cb.stateChanged.connect(check_changed)
+
+            warning_box.setCheckBox(cb)
+
+            warning_box.show()
+
     @QtCore.Slot()
     def data_changed(self, topLeft, bottomRight, roles):
         if topLeft.column() > 0 or QtCore.Qt.EditRole not in roles:
             return
         if not self.project.are_videos_ready():
             # TODO connect a signal
-            self.pop_error_box(
-                "Toutes les vidéos n'ont pas été téléchargées ?"
+            self.pop_warning_box(
+                "Les vidéos sont en cours de téléchargement. L'analyse du segment débutera automatiquement."
             )
             return
         try:
