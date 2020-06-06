@@ -39,14 +39,14 @@ if __name__ == "__main__":
 
     sm.sentence_mixer.prepare_sm_config_dict(config)
 
-    worker = Worker(download_video_and_audio, vids)
-    worker.signals.result.connect(project.set_videos)
-    worker.signals.error.connect(print)
+    video_dl_worker = Worker(download_video_and_audio, vids)
+    video_dl_worker.signals.result.connect(project.set_videos)
+    video_dl_worker.signals.error.connect(print)
 
     threadpool = QtCore.QThreadPool()
-    threadpool.start(worker)
+    threadpool.start(video_dl_worker)
 
-    window = MainWindow(project)
+    window = MainWindow(project, video_dl_worker)
     #    window.open_project(load_project('/tmp/lol.p00p'))
     window.show()
 
