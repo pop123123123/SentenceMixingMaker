@@ -12,7 +12,7 @@ from model_ui.segment_model import SegmentModel
 from ui.generated.ui_mainwindow import Ui_Sentence
 from view import preview
 from view.NewProjectDialog import NewProjectDialog
-from worker import AnalyzeWorker, Worker, WorkerSignals
+from worker import AnalyzeWorker, AnalyzeWorkerPool, Worker, WorkerSignals
 
 
 class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
@@ -66,7 +66,9 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.threadpool = QtCore.QThreadPool()
 
         self.video_dl_worker = video_dl_worker
-        self.analyze_worker_list = []
+        self.analyze_worker_pool = AnalyzeWorkerPool(
+            self.segment_model, self.threadpool
+        )
 
         self.show_warning_message = True
 
@@ -92,7 +94,12 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.segment_model.command_stack.push(command)
 
     def remove_sentence(self):
-        self.cancel_compute(self.get_selected_segment())
+        segment = self.get_selected_segment()
+        try:
+            # TODO: check unicity of segment in segment model
+            self.analyze_worker_pool.interrupt_worker(segment)
+        except KeyError:
+            pass
 
         i = self.get_selected_i()
         command = commands.RemoveSegmentCommand(
@@ -155,40 +162,38 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.pop_error_box(str(e))
             return
 
-        def launch_compute():
-            def compute_finish():
-                self.analyze_worker_list = list(
-                    filter(
-                        lambda x: x.segment != segment,
-                        self.analyze_worker_list,
-                    )
-                )
+        def compute_finish():
+            pass
 
-            def compute_success(_):
-                preview.previewManager.compute_previews(
-                    self.threadpool, segment.combos[:10]
-                )
-
-            def compute_error(err):
-                self.pop_error_box(err)
-
-            compute_worker = AnalyzeWorker(segment)
-            self.analyze_worker_list.append(compute_worker)
-
-            compute_worker.signals.finished.connect(compute_finish)
-            compute_worker.signals.result.connect(compute_success)
-            compute_worker.signals.error.connect(compute_error)
-            compute_worker.stateChanged.connect(
-                self.segment_model.analysis_state_changed
+        def compute_success(_):
+            preview.previewManager.compute_previews(
+                self.threadpool, segment.combos[:10]
             )
-            self.threadpool.start(compute_worker)
 
+        def compute_error(err):
+            self.pop_error_box(err)
+
+        already_created = False
+        try:
+            self.analyze_worker_pool.add_worker(
+                segment, compute_finish, compute_success, compute_error
+            )
+        except KeyError:
+            already_created = True
+
+        # If videos are still downloading
         if not self.project.are_videos_ready():
-            # TODO connect a signal
             self.pop_warning_box(
                 "Les vidéos sont en cours de téléchargement. L'analyse du segment débutera automatiquement."
             )
-            self.video_dl_worker.signals.finished.connect(launch_compute)
+
+            # Lanches the analysis at the end of the downloading if necessary
+            if not already_created:
+
+                def exec_worker():
+                    self.analyze_worker_pool.launch_thread(segment)
+
+                self.video_dl_worker.signals.finished.connect(exec_worker)
             return
 
         if not segment.need_analysis():
@@ -198,18 +203,8 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.previewer.stop()
         preview.previewManager.cancel(segment)
 
-        launch_compute()
-
-    def cancel_compute(self, segment):
-        # Interrupts all analyzing threads corresponding to current segment
-        list(
-            map(
-                lambda x: x.interrupt(),
-                filter(
-                    lambda x: x.segment == segment, self.analyze_worker_list
-                ),
-            )
-        )
+        if not already_created:
+            self.analyze_worker_pool.launch_thread(segment)
 
     def get_selected_index(self):
         if len(self.listView.selectionModel().selectedIndexes()) > 0:
