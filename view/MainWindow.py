@@ -58,6 +58,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.listView.currentChanged = self.table_index_change
         self.segment_model.dataChanged.connect(self.data_changed)
 
+        self.pushButton_preview.clicked.connect(self.complete_preview)
         self.pushButton_add_sentence.clicked.connect(self.add_sentence)
         self.pushButton_remove_sentence.clicked.connect(self.remove_sentence)
         self.preview_checkBox.clicked.connect(self.pause)
@@ -235,6 +236,15 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
                 self.get_selected_index()
             )
         return -1
+
+    @QtCore.Slot()
+    def complete_preview(self):
+        phonems = self.collect_combos()
+        previewer = preview.Previewer(None, audio_phonems=phonems)
+        if self.previewer is not None:
+            self.previewer.stop()
+        self.previewer = previewer
+        self.previewer.run(self.pixmap, self.graphicsView)
 
     @QtCore.Slot()
     def _preview_combo(self, previewer):
