@@ -18,7 +18,8 @@ def get_phonem_from_project_index(index, project):
 
 
 class Combo:
-    def __init__(self, sm_combo, segment):
+    def __init__(self, sm_combo, segment, id):
+        self.id = id
         self.segment = segment
         if type(sm_combo) == list:
             self._phonems = sm_combo
@@ -39,7 +40,7 @@ class Combo:
         return str((self.segment._sentence, self.get_index()))
 
     def get_index(self):
-        return self.segment.get_combo_index(self)
+        return self.id
 
     def get_audio_phonems(self):
         return self._phonems
@@ -47,10 +48,11 @@ class Combo:
     def to_JSON_serializable(self, project):
         return [get_phonem_project_index(ph, project) for ph in self._phonems]
 
-    def from_JSON_serializable(obj, project, seg):
+    def from_JSON_serializable(obj, project, seg, id):
         return Combo(
             [get_phonem_from_project_index(index, project) for index in obj],
             seg,
+            id,
         )
 
 
@@ -72,8 +74,8 @@ class Segment:
         seg = Segment(project, obj["_sentence"], obj["_current_combo_index"])
         seg.set_combos(
             [
-                Combo.from_JSON_serializable(c, project, seg)
-                for c in obj["combos"]
+                Combo.from_JSON_serializable(c, project, seg, i)
+                for i, c in enumerate(obj["combos"])
             ]
         )
         return seg
@@ -81,12 +83,14 @@ class Segment:
     def analyze(self, interrupt_callback):
         self.set_combos(
             [
-                Combo(c, self)
-                for c in sm.process_sm(
-                    self._sentence,
-                    self.project.videos,
-                    seed=self.project.seed,
-                    interrupt_callback=interrupt_callback,
+                Combo(c, self, i)
+                for i, c in enumerate(
+                    sm.process_sm(
+                        self._sentence,
+                        self.project.videos,
+                        seed=self.project.seed,
+                        interrupt_callback=interrupt_callback,
+                    )
                 )
             ]
         )
@@ -102,7 +106,6 @@ class Segment:
 
     def set_combos(self, combos):
         self.combos = combos
-        self.combo_index = {id(c): i for i, c in enumerate(combos)}
 
     def get_combo_index(self, combo):
-        return self.combo_index[id(combo)]
+        return self.combo.id

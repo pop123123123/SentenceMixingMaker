@@ -73,14 +73,13 @@ class SegmentModel(QtCore.QAbstractTableModel):
     def __init__(self, project, *args, **kwargs):
         QtCore.QAbstractTableModel.__init__(self, *args, **kwargs)
         self.project = project
-        self.ordered_segments = []
         self.command_stack = QtWidgets.QUndoStack()
 
     def get_segment_from_index(self, index):
         return self.get_chosen_from_index(index).get_associated_segment()
 
     def get_chosen_from_index(self, index):
-        return self.ordered_segments[index.row()]
+        return self.project.ordered_segments[index.row()]
 
     def get_attribute_from_index(self, index):
         getter_name = GET_PREFIX + COLUMN_INDEX_TO_ATTRIBUTE[index.column()]
@@ -139,7 +138,7 @@ class SegmentModel(QtCore.QAbstractTableModel):
         return True
 
     def rowCount(self, index):
-        return len(self.ordered_segments)
+        return len(self.project.ordered_segments)
 
     def columnCount(self, index):
         return len(COLUMN_INDEX_TO_ATTRIBUTE)
@@ -153,10 +152,18 @@ class SegmentModel(QtCore.QAbstractTableModel):
         )
 
         for row in range(0, count):
-            self.ordered_segments.insert(position, ChosenCombo(self.project))
+            self.project.ordered_segments.insert(
+                position, ChosenCombo(self.project)
+            )
 
         self.endInsertRows()
         return True
+
+    def is_empty(self):
+        return len(self.project.ordered_segments) == 0
+
+    def get_ordered_segments(self):
+        return self.project.ordered_segments
 
     def removeRow(self, row, parent=QtCore.QModelIndex()):
         return self.removeRows(row, 1, parent)
@@ -165,14 +172,14 @@ class SegmentModel(QtCore.QAbstractTableModel):
         self.beginRemoveRows(QtCore.QModelIndex(), row, row + count - 1)
 
         for _ in range(0, count):
-            del self.ordered_segments[row]
+            del self.project.ordered_segments[row]
 
         self.endRemoveRows()
         return True
 
     @QtCore.Slot()
     def analysis_state_changed(self, sentence):
-        for i, chosen_segment in enumerate(self.ordered_segments):
+        for i, chosen_segment in enumerate(self.project.ordered_segments):
             if chosen_segment.sentence == sentence:
                 topleft = self.index(i, 2)
                 bottomright = self.index(i, 2)
