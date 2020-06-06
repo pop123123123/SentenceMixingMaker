@@ -155,8 +155,11 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         def launch_compute():
             def compute_finish():
-                filter(
-                    lambda x: x.segment != segment, self.analyze_worker_list
+                self.analyze_worker_list = list(
+                    filter(
+                        lambda x: x.segment != segment,
+                        self.analyze_worker_list,
+                    )
                 )
 
             def compute_success(_):
