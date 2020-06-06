@@ -97,8 +97,13 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
     def remove_sentence(self):
         segment = self.get_selected_segment()
         try:
-            # TODO: check unicity of segment in segment model
-            self.analyze_worker_pool.interrupt_worker(segment)
+            # Only interrupt analysis if the sentence is unique in the list
+            if (
+                self.segment_model.count_same_sentence(segment.get_sentence())
+                == 1
+            ):
+                self.analyze_worker_pool.interrupt_worker(segment)
+        # Analysis is already
         except KeyError:
             pass
 
