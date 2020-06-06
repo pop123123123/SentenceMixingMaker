@@ -32,7 +32,8 @@ class Worker(QtCore.QRunnable):
             if self.should_be_interrupted():
                 raise Interruption(self.should_be_interrupted)
         except Interruption:
-            self.signals.error.emit("Thread interrupted")
+            # self.signals.error.emit("Thread interrupted")
+            pass
         except Exception as e:
             self.signals.error.emit(str(e))
         else:
@@ -70,6 +71,52 @@ class AnalyzeWorker(Worker, QtCore.QObject):
         try:
             self.segment.analyze(interrupt_callback)
             self.stateChanged.emit(self.segment.get_sentence())
-        except Interruption as i:
-            #            self.stateChanged.emit(self.segment.get_sentence(), AnalysisState.NEED_ANALYSIS)
-            raise i
+        except Interruption:
+            print(
+                "Analysis of sentence '"
+                + self.segment.get_sentence()
+                + "' have been interrupted"
+            )
+
+
+class AnalyzeWorkerPool:
+    def __init__(self, segment_model, threadpool):
+        self.segment_model = segment_model
+        self.threadpool = threadpool
+        self._worker_dict = {}
+
+    def add_worker(self, segment, finished, result, error):
+        @QtCore.Slot()
+        def compute_finish():
+            finished()
+            del self._worker_dict[segment]
+
+        if segment in self._worker_dict:
+            raise KeyError("A worker is already created for that segment")
+
+        worker = AnalyzeWorker(segment)
+        worker.signals.finished.connect(compute_finish)
+        worker.signals.result.connect(result)
+        worker.signals.error.connect(error)
+        worker.stateChanged.connect(self.segment_model.analysis_state_changed)
+
+        self._worker_dict[segment] = worker
+
+    def launch_thread(self, segment):
+        if segment not in self._worker_dict:
+            raise KeyError(
+                "This segment has not associated worker. PLease launch add_worker"
+            )
+
+        self.threadpool.start(self._worker_dict[segment])
+
+    def add_launch_worker(self, segment, finished, result, error):
+        self.add_worker(segment, finished, result, error)
+        self.launch_thread(segment)
+
+    def interrupt_worker(self, segment):
+        if segment in self._worker_dict:
+            self._worker_dict[segment].interrupt()
+        raise KeyError(
+            "This segment has not associated worker. PLease launch add_worker"
+        )

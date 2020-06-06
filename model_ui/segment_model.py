@@ -171,6 +171,16 @@ class SegmentModel(QtCore.QAbstractTableModel):
     def get_ordered_segments(self):
         return self.project.ordered_segments
 
+    def count_same_sentence(self, sentence):
+        return len(
+            list(
+                filter(
+                    lambda x: x.get_sentence() == sentence,
+                    self.project.ordered_segments,
+                )
+            )
+        )
+
     def removeRow(self, row, parent=QtCore.QModelIndex()):
         return self.removeRows(row, 1, parent)
 
