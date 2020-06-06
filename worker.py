@@ -32,7 +32,8 @@ class Worker(QtCore.QRunnable):
             if self.should_be_interrupted():
                 raise Interruption(self.should_be_interrupted)
         except Interruption:
-            self.signals.error.emit("Thread interrupted")
+            # self.signals.error.emit("Thread interrupted")
+            pass
         except Exception as e:
             self.signals.error.emit(str(e))
         else:
@@ -70,9 +71,12 @@ class AnalyzeWorker(Worker, QtCore.QObject):
         try:
             self.segment.analyze(interrupt_callback)
             self.stateChanged.emit(self.segment.get_sentence())
-        except Interruption as i:
-            #            self.stateChanged.emit(self.segment.get_sentence(), AnalysisState.NEED_ANALYSIS)
-            raise i
+        except Interruption:
+            print(
+                "Analysis of sentence '"
+                + self.segment.get_sentence()
+                + "' have been interrupted"
+            )
 
 
 class AnalyzeWorkerPool:
