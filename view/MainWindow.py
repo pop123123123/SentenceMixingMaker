@@ -232,7 +232,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
     @QtCore.Slot()
     def complete_preview(self):
-        phonems = self.collect_combos()
+        phonems = self.collect_combos(False)
         previewer = preview.Previewer(None, audio_phonems=phonems)
         if self.previewer is not None:
             self.previewer.stop()
@@ -326,7 +326,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         phonems = []
         for ordered_segment in self.segment_model.get_ordered_segments():
-            if ordered_segment.get_associated_segment().need_analysis():
+            if not ordered_segment.is_ready():
                 if strict:
                     raise Exception("A segment have not been analyzed")
             else:

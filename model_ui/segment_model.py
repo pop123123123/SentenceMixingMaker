@@ -30,6 +30,12 @@ class ChosenCombo:
         self.sentence = sentence
         self.index = index
 
+    def is_ready(self):
+        return (
+            not self.get_associated_segment().need_analysis()
+            and self.sentence != ""
+        )
+
     def get_chosen_combo(self):
         return self.get_associated_segment().combos[self.index]
 
