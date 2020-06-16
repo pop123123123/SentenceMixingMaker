@@ -25,7 +25,8 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.actionOpen.triggered.connect(self.open)
         self.actionSave_as.triggered.connect(self.save_as)
         self.actionSave.triggered.connect(self.save)
-        self.actionExport.triggered.connect(self.export)
+        self.actionExport.triggered.connect(self.export_all)
+        self.actionExport_selection.triggered.connect(self.export_selection)
         self.actionQuit.triggered.connect(self.quit)
 
         self.graphicsView = QtWidgets.QGraphicsView()
@@ -327,12 +328,15 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.project.set_path(path)
             self._save()
 
-    def collect_combos(self, strict=True):
+    def collect_combos(self, chosen_list=None, strict=True):
+        if chosen_list is None:
+            chosen_list = self.segment_model.get_ordered_segments()
+
         if strict and self.segment_model.is_empty():
             raise Exception("No segment found")
 
         phonems = []
-        for ordered_segment in self.segment_model.get_ordered_segments():
+        for ordered_segment in chosen_list:
             if not ordered_segment.is_ready():
                 if strict:
                     raise Exception("A segment have not been analyzed")
@@ -345,7 +349,19 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         return phonems
 
-    def export(self):
+    def export_selection(self):
+        selected_rows = {
+            i.row() for i in self.listView.selectionModel().selectedIndexes()
+        }
+        chosen = [
+            self.segment_model.get_chosen_from_row(r) for r in selected_rows
+        ]
+        self.export(chosen)
+
+    def export_all(self):
+        self.export()
+
+    def export(self, chosen_list=None):
         path, _ = QtWidgets.QFileDialog.getSaveFileName(
             self,
             self.tr("Export p00p project"),
@@ -363,7 +379,9 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         # Retrieves phonems of all segments
         try:
-            phonems = self.collect_combos(strict=False)
+            phonems = self.collect_combos(
+                chosen_list=chosen_list, strict=False
+            )
         except Exception as e:
             self.pop_error_box(str(e))
             return

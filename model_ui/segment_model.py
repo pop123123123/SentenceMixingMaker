@@ -87,6 +87,9 @@ class SegmentModel(QtCore.QAbstractTableModel):
     def get_chosen_from_index(self, index):
         return self.project.ordered_segments[index.row()]
 
+    def get_chosen_from_row(self, row):
+        return self.project.ordered_segments[row]
+
     def get_attribute_from_index(self, index):
         getter_name = GET_PREFIX + COLUMN_INDEX_TO_ATTRIBUTE[index.column()]
         getter = getattr(self.get_chosen_from_index(index), getter_name, None)
