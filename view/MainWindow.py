@@ -340,6 +340,9 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
                 combo = ordered_segment.get_chosen_combo()
                 phonems.extend(combo.get_audio_phonems())
 
+        if len(phonems) == 0:
+            raise Exception("No analyzed segments")
+
         return phonems
 
     def export(self):
@@ -359,7 +362,11 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             return
 
         # Retrieves phonems of all segments
-        phonems = self.collect_combos(strict=True)
+        try:
+            phonems = self.collect_combos(strict=False)
+        except Exception as e:
+            self.pop_error_box(str(e))
+            return
 
         # Progress bar dialog widget
         progress = video_assembly.VideoAssemblerProgressDialog(self)
