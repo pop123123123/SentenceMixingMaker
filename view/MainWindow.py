@@ -119,6 +119,8 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         preview.previewManager.cancel(
             self.segment_model.get_segment_from_index(_previous)
         )
+        if self.previewer is not None:
+            self.previewer.stop()
 
         if current.row() == -1:
             self.pushButton_remove_sentence.setDisabled(True)
