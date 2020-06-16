@@ -136,7 +136,7 @@ class Ui_Sentence(object):
         Sentence.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(Sentence)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 800, 23))
+        self.menubar.setGeometry(QRect(0, 0, 800, 32))
         self.menucoucou = QMenu(self.menubar)
         self.menucoucou.setObjectName(u"menucoucou")
         self.menuEdit = QMenu(self.menubar)
@@ -215,7 +215,7 @@ class Ui_Sentence(object):
         self.pushButton_add_sentence.setText(QCoreApplication.translate("Sentence", u"Add", None))
         self.pushButton_remove_sentence.setText(QCoreApplication.translate("Sentence", u"Remove", None))
         self.pushButton_preview.setText(QCoreApplication.translate("Sentence", u"Preview", None))
-        self.preview_checkBox.setText(QCoreApplication.translate("Sentence", u"Real-time preview", None))
+        self.preview_checkBox.setText(QCoreApplication.translate("Sentence", u"Play", None))
         self.menucoucou.setTitle(QCoreApplication.translate("Sentence", u"Fi&le", None))
         self.menuEdit.setTitle(QCoreApplication.translate("Sentence", u"&Edit", None))
     # retranslateUi

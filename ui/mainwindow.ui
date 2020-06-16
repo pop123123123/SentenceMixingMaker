@@ -152,7 +152,7 @@
       <item>
        <widget class="QCheckBox" name="preview_checkBox">
         <property name="text">
-         <string>Real-time preview</string>
+         <string>Play</string>
         </property>
        </widget>
       </item>
@@ -166,7 +166,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>23</height>
+     <height>32</height>
     </rect>
    </property>
    <widget class="QMenu" name="menucoucou">
