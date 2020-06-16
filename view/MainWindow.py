@@ -407,4 +407,5 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
     def quit(self):
         if self.wants_to_quit():
+            preview.previewManager.cancel_all()
             QtWidgets.QApplication.quit()

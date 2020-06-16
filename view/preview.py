@@ -145,12 +145,18 @@ class Previewer:
 class Cancellation:
     def __init__(self):
         self.cancelled = False
+        self.lock = QtCore.QReadWriteLock()
 
     def cancel(self):
+        self.lock.lockForWrite()
         self.cancelled = True
+        self.lock.unlock()
 
     def is_cancelled(self):
-        return self.cancelled
+        self.lock.lockForRead()
+        cancelled = self.cancelled
+        self.lock.unlock()
+        return cancelled
 
     def __repr__(self):
         return f"<Cancellation: {str(self.cancelled)}>"
@@ -243,6 +249,8 @@ class __PreviewManager:
         self.previous_lock.unlock()
         self.queue.release(1)
         self.delete_job(combo, job)
+        if job.is_cancelled():
+            return
         return p
 
     def __compute_previews(self, combos):
@@ -270,6 +278,14 @@ class __PreviewManager:
                 for job in self.jobs[c]:
                     job.cancel()
                 self.jobs.pop(c)
+        self.jobs_lock.unlock()
+
+    def cancel_all(self):
+        self.jobs_lock.lockForWrite()
+        for c in list(self.jobs.keys()):
+            for job in self.jobs[c]:
+                job.cancel()
+            self.jobs.pop(c)
         self.jobs_lock.unlock()
 
 
