@@ -21,7 +21,7 @@ pylint==2.5.2
 PySide2==5.14.2.1
 python-jsonrpc-server==0.3.4
 python-language-server==0.32.0
-PyYAML==5.3.1
+PyYAML==5.4
 rope==0.17.0
 shiboken2==5.14.2.1
 six==1.14.0
