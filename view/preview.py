@@ -1,6 +1,6 @@
 # import threading
 import numpy as np
-from moviepy.editor import concatenate_videoclips
+from moviepy.video.compositing.concatenate import concatenate_videoclips
 from PySide2 import QtCore, QtGui, QtMultimedia
 from sentence_mixing.video_creator.audio import concat_segments
 

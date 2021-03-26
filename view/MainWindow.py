@@ -117,9 +117,10 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
     def table_index_change(self, current, _previous):
         self.mapper.setCurrentIndex(current.row())
-        preview.previewManager.cancel(
-            self.segment_model.get_segment_from_index(_previous)
-        )
+        if _previous.row() != -1:
+            preview.previewManager.cancel(
+                self.segment_model.get_segment_from_index(_previous)
+            )
         if self.previewer is not None:
             self.previewer.stop()
 
@@ -242,7 +243,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
     @QtCore.Slot()
     def complete_preview(self):
-        phonems = self.collect_combos(False)
+        phonems = self.collect_combos(strict=False)
         previewer = preview.Previewer(None, audio_phonems=phonems)
         if self.previewer is not None:
             self.previewer.stop()
