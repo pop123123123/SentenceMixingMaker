@@ -3,16 +3,13 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 5.14.2
+## Created by: Qt User Interface Compiler version 5.15.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import (QCoreApplication, QDate, QDateTime, QMetaObject,
-    QObject, QPoint, QRect, QSize, QTime, QUrl, Qt)
-from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont,
-    QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter,
-    QPixmap, QRadialGradient)
+from PySide2.QtCore import *
+from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 
@@ -83,6 +80,7 @@ class Ui_Sentence(object):
 
         self.pushButton_remove_sentence = QPushButton(self.centralwidget)
         self.pushButton_remove_sentence.setObjectName(u"pushButton_remove_sentence")
+        self.pushButton_remove_sentence.setEnabled(False)
 
         self.horizontalLayout_2.addWidget(self.pushButton_remove_sentence)
 
@@ -120,6 +118,7 @@ class Ui_Sentence(object):
 
         self.spinBox_index = QSpinBox(self.centralwidget)
         self.spinBox_index.setObjectName(u"spinBox_index")
+        self.spinBox_index.setEnabled(False)
 
         self.horizontalLayout_3.addWidget(self.spinBox_index)
 
@@ -138,7 +137,7 @@ class Ui_Sentence(object):
         Sentence.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(Sentence)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 800, 32))
+        self.menubar.setGeometry(QRect(0, 0, 800, 30))
         self.menucoucou = QMenu(self.menubar)
         self.menucoucou.setObjectName(u"menucoucou")
         self.menuEdit = QMenu(self.menubar)
