@@ -10,6 +10,7 @@ class NewProjectDialog(QtWidgets.QDialog):
         self.ui = Ui_NewProject()
         self.ui.setupUi(self)
         self.ui.add_button.clicked.connect(self.add_url)
+        self.ui.remove_button.clicked.connect(self.remove_url)
         self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(
             False
         )
@@ -22,6 +23,12 @@ class NewProjectDialog(QtWidgets.QDialog):
             True
         )
         self.ui.url_list.editItem(item)
+
+    def remove_url(self):
+        selected_indexes = self.ui.url_list.selectedIndexes()
+        if len(selected_indexes) > 0:
+            index = selected_indexes[0]
+            self.ui.url_list.takeItem(index.row())
 
     def get_project_settings(self):
         ret = self.exec_()

@@ -3,16 +3,13 @@
 ################################################################################
 ## Form generated from reading UI file 'new.ui'
 ##
-## Created by: Qt User Interface Compiler version 5.14.2
+## Created by: Qt User Interface Compiler version 5.15.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import (QCoreApplication, QDate, QDateTime, QMetaObject,
-    QObject, QPoint, QRect, QSize, QTime, QUrl, Qt)
-from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont,
-    QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter,
-    QPixmap, QRadialGradient)
+from PySide2.QtCore import *
+from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 
@@ -55,10 +52,10 @@ class Ui_NewProject(object):
 
         self.horizontalLayout.addWidget(self.add_button)
 
-        self.pushButton = QPushButton(NewProject)
-        self.pushButton.setObjectName(u"pushButton")
+        self.remove_button = QPushButton(NewProject)
+        self.remove_button.setObjectName(u"remove_button")
 
-        self.horizontalLayout.addWidget(self.pushButton)
+        self.horizontalLayout.addWidget(self.remove_button)
 
         self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -87,6 +84,6 @@ class Ui_NewProject(object):
         self.label.setText(QCoreApplication.translate("NewProject", u"Seed:", None))
         self.label_2.setText(QCoreApplication.translate("NewProject", u"Youtube video URLs:", None))
         self.add_button.setText(QCoreApplication.translate("NewProject", u"Add URL", None))
-        self.pushButton.setText(QCoreApplication.translate("NewProject", u"Remove URL", None))
+        self.remove_button.setText(QCoreApplication.translate("NewProject", u"Remove URL", None))
     # retranslateUi
 
