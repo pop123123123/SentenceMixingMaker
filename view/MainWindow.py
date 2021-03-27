@@ -126,14 +126,22 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.previewer.stop()
 
     def selection_change(self, newly_selected, newly_deselected):
-        selected_indexes = self.listView.selectionModel().selectedIndexes()
+        selected_segments = self.get_all_selected_segments()
 
-        if len(selected_indexes) == 0:
+        if len(selected_segments) == 0:
+            self.pushButton_remove_sentence.setDisabled(True)
+            self.spinBox_index.setDisabled(True)
+        elif len(selected_segments) > 1:
             self.pushButton_remove_sentence.setDisabled(True)
             self.spinBox_index.setDisabled(True)
         else:
+            segment = selected_segments[0]
+            if segment.is_empty():
+                self.spinBox_index.setDisabled(True)
+            else:
+                self.spinBox_index.setDisabled(False)
+
             self.pushButton_remove_sentence.setDisabled(False)
-            self.spinBox_index.setDisabled(False)
 
 
     def pause(self, state):
