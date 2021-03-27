@@ -57,6 +57,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         # self.listView.indexesMoved.connect(self.table_index_change)
         self.listView.currentChanged = self.table_index_change
+        self.listView.selectionModel().selectionChanged.connect(self.selection_change)
         self.segment_model.dataChanged.connect(self.data_changed)
 
         self.pushButton_preview.clicked.connect(self.complete_preview)
@@ -124,12 +125,16 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         if self.previewer is not None:
             self.previewer.stop()
 
-        if current.row() == -1:
+    def selection_change(self, newly_selected, newly_deselected):
+        selected_indexes = self.listView.selectionModel().selectedIndexes()
+
+        if len(selected_indexes) == 0:
             self.pushButton_remove_sentence.setDisabled(True)
             self.spinBox_index.setDisabled(True)
         else:
             self.pushButton_remove_sentence.setDisabled(False)
             self.spinBox_index.setDisabled(False)
+
 
     def pause(self, state):
         if self.previewer is not None:
