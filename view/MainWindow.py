@@ -242,42 +242,33 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         # In our model, segment_model have three columns, then, selection model
         # will return three selected items per selected segment_model
         # We only keep one index value for each row
-        indexes = [index for index in self.listView.selectionModel().selectedIndexes() if index.column() == 0]
-        if len(indexes) > 0:
-            return indexes
-        return -1
+        return [index for index in self.listView.selectionModel().selectedIndexes() if index.column() == 0]
 
     def get_all_selected_i(self):
-        indexes = self.get_all_selected_indexes()
-        if indexes != -1:
-            return [index.row() for index in indexes]
-        return -1
+        return [index.row() for index in self.get_all_selected_indexes()]
 
     def get_all_selected_segments(self):
-        indexes = self.get_all_selected_indexes()
-        if indexes != -1:
-            return [self.segment_model.get_segment_from_index(index) for index in indexes]
-        return -1
+        return [self.segment_model.get_segment_from_index(index) for index in self.get_all_selected_indexes()]
 
     def get_first_selected_index(self):
         indexes = self.get_all_selected_indexes()
-        if indexes != -1:
+        if len(indexes):
             return indexes[0]
-        return -1
+        return None
 
     def get_first_selected_i(self):
         index = self.get_first_selected_index()
-        if index != -1:
+        if index is not None:
             return index.row()
         return -1
 
     def get_first_selected_segment(self):
         index = self.get_first_selected_index()
-        if index != -1:
+        if index is not None:
             return self.segment_model.get_segment_from_index(
                 index
             )
-        return -1
+        return None
 
     @QtCore.Slot()
     def complete_preview(self):
@@ -308,7 +299,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.previewer.stop()
 
         segment = self.get_first_selected_segment()
-        if segment != -1:
+        if segment is not None:
             preview.previewManager.compute_previews(
                 self.threadpool, segment.combos[i : i + 1], self._preview_combo
             )
