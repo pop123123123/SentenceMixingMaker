@@ -91,14 +91,14 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.setWindowModified(not is_clean)
 
     def add_sentence(self):
-        i = self.get_selected_i()
+        i = self.get_first_selected_i()
         command = commands.AddSegmentCommand(
             self.segment_model, self.listView, i, i + 1
         )
         self.segment_model.command_stack.push(command)
 
     def remove_sentence(self):
-        segment = self.get_selected_segment()
+        segment = self.get_first_selected_segment()
         try:
             # Only interrupt analysis if the sentence is unique in the list
             if (
@@ -110,7 +110,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         except KeyError:
             pass
 
-        i = self.get_selected_i()
+        i = self.get_first_selected_i()
         command = commands.RemoveSegmentCommand(
             self.segment_model, self.listView, i
         )
@@ -229,20 +229,45 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         if not already_created:
             self.analyze_worker_pool.launch_thread(segment)
 
-    def get_selected_index(self):
-        if len(self.listView.selectionModel().selectedIndexes()) > 0:
-            return self.listView.selectionModel().selectedIndexes()[0]
+    def get_all_selected_indexes(self):
+        # Warning: returns only one index per row
+        # In our model, segment_model have three columns, then, selection model
+        # will return three selected items per selected segment_model
+        # We only keep one index value for each row
+        indexes = [index for index in self.listView.selectionModel().selectedIndexes() if index.column() == 0]
+        if len(indexes) > 0:
+            return indexes
         return -1
 
-    def get_selected_i(self):
-        if self.get_selected_index() != -1:
-            return self.listView.selectionModel().selectedIndexes()[0].row()
+    def get_all_selected_i(self):
+        indexes = self.get_all_selected_indexes()
+        if indexes != -1:
+            return [index.row() for index in indexes]
         return -1
 
-    def get_selected_segment(self):
-        if self.get_selected_index() != -1:
+    def get_all_selected_segments(self):
+        indexes = self.get_all_selected_indexes()
+        if indexes != -1:
+            return [self.segment_model.get_segment_from_index(index) for index in indexes]
+        return -1
+
+    def get_first_selected_index(self):
+        indexes = self.get_all_selected_indexes()
+        if indexes != -1:
+            return indexes[0]
+        return -1
+
+    def get_first_selected_i(self):
+        index = self.get_first_selected_index()
+        if index != -1:
+            return index.row()
+        return -1
+
+    def get_first_selected_segment(self):
+        index = self.get_first_selected_index()
+        if index != -1:
             return self.segment_model.get_segment_from_index(
-                self.get_selected_index()
+                index
             )
         return -1
 
@@ -258,7 +283,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
     @QtCore.Slot()
     def _preview_combo(self, previewer):
         current_combo = self.segment_model.get_chosen_from_index(
-            self.get_selected_index()
+            self.get_first_selected_index()
         ).get_chosen_combo()
         if previewer is not None and (
             previewer.combo is None or current_combo == previewer.combo
@@ -273,14 +298,16 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.mapper.submit()
         if self.previewer is not None:
             self.previewer.stop()
-        segment = self.get_selected_segment()
-        preview.previewManager.compute_previews(
-            self.threadpool, segment.combos[i : i + 1], self._preview_combo
-        )
-        preview.previewManager.compute_previews(
-            self.threadpool, segment.combos[i + 1 : i + 6]
-        )
-        self._preview_combo(preview.blank_preview)
+
+        segment = self.get_first_selected_segment()
+        if segment != -1:
+            preview.previewManager.compute_previews(
+                self.threadpool, segment.combos[i : i + 1], self._preview_combo
+            )
+            preview.previewManager.compute_previews(
+                self.threadpool, segment.combos[i + 1 : i + 6]
+            )
+            self._preview_combo(preview.blank_preview)
 
     def closeEvent(self, event):
         if self.wants_to_quit():
