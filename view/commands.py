@@ -80,6 +80,29 @@ class EditSegmentCommand(QtWidgets.QUndoCommand):
         return True
 
 
+class CommandGroupedFactory():
+    def __init__(self, segment_model, listview):
+        self.segment_model = segment_model
+        self.listview = listview
+
+    def make_grouped_remove_segments(self, rows):
+        rows = sorted(rows, reverse=True)
+        commands = [RemoveSegmentCommand(self.segment_model, self.listview, row) for row in rows]
+        return GroupedCommand(commands)
+
+class GroupedCommand(QtWidgets.QUndoCommand):
+    def __init__(self, commands):
+        self.commands = commands
+        QtWidgets.QUndoCommand.__init__(self, f"prout")
+
+    def undo(self):
+        for command in reversed(self.commands):
+            command.undo()
+
+    def redo(self):
+        for command in self.commands:
+            command.redo()
+
 class RemoveSegmentCommand(QtWidgets.QUndoCommand):
     def __init__(self, segment_model, list_view, row):
         QtWidgets.QUndoCommand.__init__(self, f"remove segment {row}")

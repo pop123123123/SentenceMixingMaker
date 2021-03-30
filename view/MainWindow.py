@@ -110,13 +110,12 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         except KeyError:
             pass
 
-        selected_i = sorted(self.get_all_selected_i(), reverse=True)
+        selected_rows = self.get_all_selected_i()
 
-        for i in selected_i:
-            command = commands.RemoveSegmentCommand(
-                self.segment_model, self.listView, i
-            )
-            self.segment_model.command_stack.push(command)
+        factory = commands.CommandGroupedFactory(self.segment_model, self.listView)
+        grouped_command = factory.make_grouped_remove_segments(selected_rows)
+        self.segment_model.command_stack.push(grouped_command)
+
 
     def table_index_change(self, current, _previous):
         self.mapper.setCurrentIndex(current.row())
