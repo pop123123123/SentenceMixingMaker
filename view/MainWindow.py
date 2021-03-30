@@ -110,11 +110,13 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         except KeyError:
             pass
 
-        i = self.get_first_selected_i()
-        command = commands.RemoveSegmentCommand(
-            self.segment_model, self.listView, i
-        )
-        self.segment_model.command_stack.push(command)
+        selected_i = sorted(self.get_all_selected_i(), reverse=True)
+
+        for i in selected_i:
+            command = commands.RemoveSegmentCommand(
+                self.segment_model, self.listView, i
+            )
+            self.segment_model.command_stack.push(command)
 
     def table_index_change(self, current, _previous):
         self.mapper.setCurrentIndex(current.row())
@@ -132,7 +134,6 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.pushButton_remove_sentence.setDisabled(True)
             self.spinBox_index.setDisabled(True)
         elif len(selected_segments) > 1:
-            self.pushButton_remove_sentence.setDisabled(True)
             self.spinBox_index.setDisabled(True)
         else:
             segment = selected_segments[0]
