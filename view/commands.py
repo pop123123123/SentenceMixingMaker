@@ -98,8 +98,14 @@ class RemoveSegmentCommand(QtWidgets.QUndoCommand):
         combo_index_index = self.segment_model.createIndex(
             self.row, segm.Columns.combo_index.value
         )
-        self.segment_model.setData(sentence_index, self.sentence)
-        self.segment_model.setData(combo_index_index, self.combo_index)
+
+        self.segment_model._set_attribute_from_index(
+            sentence_index, self.sentence
+        )
+
+        self.segment_model._set_attribute_from_index(
+            sentence_index, self.sentence
+        )
 
         self.list_view.selectionModel().setCurrentIndex(
             sentence_index, QtCore.QItemSelectionModel.ClearAndSelect
