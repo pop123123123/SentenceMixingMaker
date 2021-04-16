@@ -98,6 +98,9 @@ class Segment:
     def get_sentence(self):
         return self._sentence
 
+    def is_analyzed(self):
+        return not self.is_analyzing()
+
     def is_analyzing(self):
         return len(self.combos) == 0
 
