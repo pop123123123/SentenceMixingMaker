@@ -8,7 +8,7 @@ from sentence_mixing.video_creator.video import create_video_file
 import view.commands as commands
 import view.video_assembly as video_assembly
 from data_model.project import Project, load_project
-from model_ui.segment_model import SegmentModel
+from model_ui.segment_model import SegmentModel, Columns
 from ui.generated.ui_mainwindow import Ui_Sentence
 from view import preview
 from view.NewProjectDialog import NewProjectDialog
@@ -35,7 +35,6 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.pixmap = QtWidgets.QGraphicsPixmapItem()
         self.graphicsView.scene().addItem(self.pixmap)
 
-        self.mapper = QtWidgets.QDataWidgetMapper()
         self.open_project(project)
 
         self.actionUndo.triggered.connect(
@@ -55,9 +54,13 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.stackCleanChanged
         )
 
-        # self.listView.indexesMoved.connect(self.table_index_change)
-        self.listView.currentChanged = self.table_index_change
-        self.listView.selectionModel().selectionChanged.connect(self.selection_change)
+        import delegate.SpinBoxDelegate as spinbox_delegate
+        self.tableView.setItemDelegateForColumn(1, spinbox_delegate.SpinBoxDelegate(self.tableView))
+        self.tableView.setColumnHidden(2, True)
+
+        # self.tableView.indexesMoved.connect(self.table_index_change)
+        self.tableView.currentChanged = self.table_index_change
+        self.tableView.selectionModel().selectionChanged.connect(self.selection_change)
         self.segment_model.dataChanged.connect(self.data_changed)
 
         self.pushButton_preview.clicked.connect(self.complete_preview)
@@ -65,7 +68,6 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.pushButton_remove_sentence.clicked.connect(self.remove_sentence)
         self.preview_checkBox.clicked.connect(self.pause)
 
-        self.spinBox_index.valueChanged.connect(self.preview_combo)
         self.previewer = None
         self.threadpool = QtCore.QThreadPool()
 
@@ -79,12 +81,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
     def open_project(self, project):
         self.project = project
         self.segment_model = SegmentModel(project)
-        self.listView.setModel(self.segment_model)
-
-        self.mapper.clearMapping()
-        self.mapper.setModel(self.segment_model)
-        self.mapper.setSubmitPolicy(QtWidgets.QDataWidgetMapper.AutoSubmit)
-        self.mapper.addMapping(self.spinBox_index, 1)
+        self.tableView.setModel(self.segment_model)
 
     @QtCore.Slot()
     def stackCleanChanged(self, is_clean):
@@ -93,7 +90,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
     def add_sentence(self):
         i = self.get_first_selected_i()
         command = commands.AddSegmentCommand(
-            self.segment_model, self.listView, i, i + 1
+            self.segment_model, self.tableView, i, i + 1
         )
         self.segment_model.command_stack.push(command)
 
@@ -112,13 +109,12 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         selected_rows = self.get_all_selected_i()
 
-        factory = commands.CommandGroupedFactory(self.segment_model, self.listView)
+        factory = commands.CommandGroupedFactory(self.segment_model, self.tableView)
         grouped_command = factory.make_grouped_remove_segments(selected_rows)
         self.segment_model.command_stack.push(grouped_command)
 
 
     def table_index_change(self, current, _previous):
-        self.mapper.setCurrentIndex(current.row())
         if _previous.row() != -1:
             preview.previewManager.cancel(
                 self.segment_model.get_segment_from_index(_previous)
@@ -131,16 +127,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         if len(selected_segments) == 0:
             self.pushButton_remove_sentence.setDisabled(True)
-            self.spinBox_index.setDisabled(True)
-        elif len(selected_segments) > 1:
-            self.spinBox_index.setDisabled(True)
         else:
-            segment = selected_segments[0]
-            if segment.is_empty():
-                self.spinBox_index.setDisabled(True)
-            else:
-                self.spinBox_index.setDisabled(False)
-
             self.pushButton_remove_sentence.setDisabled(False)
 
 
@@ -184,15 +171,26 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
     @QtCore.Slot()
     def data_changed(self, topLeft, bottomRight, roles):
-        if topLeft.column() > 0 or QtCore.Qt.EditRole not in roles:
+        """ This function is triggered when the SegmentModel is changed"""
+        if QtCore.Qt.EditRole not in roles:
             return
 
+        # Retrieving involved segment
         try:
             segment = self.segment_model.get_segment_from_index(topLeft)
         except Exception as e:
             self.pop_error_box(str(e))
             return
 
+        if topLeft.column() == Columns.sentence.value:
+            self.segment_text_changed(segment)
+        elif topLeft.column() == Columns.combo_index.value:
+            # If the segment have been already analyzed
+            combo_index = int(topLeft.data())
+            if segment.is_analyzed():
+                self.preview_combo(combo_index)
+
+    def segment_text_changed(self, segment):
         def compute_finish():
             pass
 
@@ -242,7 +240,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         # In our model, segment_model have three columns, then, selection model
         # will return three selected items per selected segment_model
         # We only keep one index value for each row
-        return [index for index in self.listView.selectionModel().selectedIndexes() if index.column() == 0]
+        return [index for index in self.tableView.selectionModel().selectedIndexes() if index.column() == 0]
 
     def get_all_selected_i(self):
         return [index.row() for index in self.get_all_selected_indexes()]
@@ -293,8 +291,8 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.previewer = previewer
             self.previewer.run(self.pixmap, self.graphicsView, True)
 
+
     def preview_combo(self, i):
-        self.mapper.submit()
         if self.previewer is not None:
             self.previewer.stop()
 
@@ -385,7 +383,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
     def export_selection(self):
         selected_rows = {
-            i.row() for i in self.listView.selectionModel().selectedIndexes()
+            i.row() for i in self.tableView.selectionModel().selectedIndexes()
         }
         chosen = [
             self.segment_model.get_chosen_from_row(r) for r in selected_rows

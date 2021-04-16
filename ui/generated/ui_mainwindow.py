@@ -57,19 +57,20 @@ class Ui_Sentence(object):
 
         self.verticalLayout.addItem(self.horizontalSpacer_4)
 
-        self.listView = QListView(self.centralwidget)
-        self.listView.setObjectName(u"listView")
-        self.listView.setContextMenuPolicy(Qt.NoContextMenu)
-        self.listView.setAcceptDrops(True)
-        self.listView.setProperty("showDropIndicator", True)
-        self.listView.setDragEnabled(False)
-        self.listView.setDragDropMode(QAbstractItemView.InternalMove)
-        self.listView.setDefaultDropAction(Qt.MoveAction)
-        self.listView.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.listView.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.listView.setMovement(QListView.Snap)
+        self.tableView = QTableView(self.centralwidget)
+        self.tableView.setObjectName(u"tableView")
+        self.tableView.setContextMenuPolicy(Qt.NoContextMenu)
+        self.tableView.setAcceptDrops(True)
+        self.tableView.setProperty("showDropIndicator", True)
+        self.tableView.setDragEnabled(False)
+        self.tableView.setDragDropMode(QAbstractItemView.InternalMove)
+        self.tableView.setDefaultDropAction(Qt.MoveAction)
+        self.tableView.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.tableView.setGridStyle(Qt.NoPen)
+        self.tableView.verticalHeader().setVisible(False)
 
-        self.verticalLayout.addWidget(self.listView)
+        self.verticalLayout.addWidget(self.tableView)
 
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
@@ -116,12 +117,6 @@ class Ui_Sentence(object):
 
         self.horizontalLayout_3.addItem(self.horizontalSpacer_3)
 
-        self.spinBox_index = QSpinBox(self.centralwidget)
-        self.spinBox_index.setObjectName(u"spinBox_index")
-        self.spinBox_index.setEnabled(False)
-
-        self.horizontalLayout_3.addWidget(self.spinBox_index)
-
         self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         self.horizontalLayout_3.addItem(self.horizontalSpacer_2)
@@ -146,7 +141,7 @@ class Ui_Sentence(object):
         self.statusbar = QStatusBar(Sentence)
         self.statusbar.setObjectName(u"statusbar")
         Sentence.setStatusBar(self.statusbar)
-        QWidget.setTabOrder(self.listView, self.pushButton_add_sentence)
+        QWidget.setTabOrder(self.tableView, self.pushButton_add_sentence)
         QWidget.setTabOrder(self.pushButton_add_sentence, self.pushButton_preview)
 
         self.menubar.addAction(self.menucoucou.menuAction())

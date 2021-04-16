@@ -38,7 +38,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QListView" name="listView">
+       <widget class="QTableView" name="tableView">
         <property name="contextMenuPolicy">
          <enum>Qt::NoContextMenu</enum>
         </property>
@@ -63,9 +63,12 @@
         <property name="selectionBehavior">
          <enum>QAbstractItemView::SelectRows</enum>
         </property>
-        <property name="movement">
-         <enum>QListView::Snap</enum>
+        <property name="gridStyle">
+         <enum>Qt::NoPen</enum>
         </property>
+        <attribute name="verticalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
        </widget>
       </item>
       <item>
@@ -137,13 +140,6 @@
        </spacer>
       </item>
       <item>
-       <widget class="QSpinBox" name="spinBox_index">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
        <spacer name="horizontalSpacer_2">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -173,7 +169,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>32</height>
+     <height>30</height>
     </rect>
    </property>
    <widget class="QMenu" name="menucoucou">
@@ -300,7 +296,7 @@
   </action>
  </widget>
  <tabstops>
-  <tabstop>listView</tabstop>
+  <tabstop>tableView</tabstop>
   <tabstop>pushButton_add_sentence</tabstop>
   <tabstop>pushButton_preview</tabstop>
  </tabstops>
