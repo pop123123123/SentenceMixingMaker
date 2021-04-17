@@ -375,7 +375,6 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.preview_combo(i)
 
     def previous_combo(self):
-        print('prev')
         row = self.get_first_selected_i()
         if row >= 0:
             index = self.segment_model.index(row, 1)
@@ -383,7 +382,6 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.segment_model.setData(index, max(i - 1, 0))
 
     def next_combo(self):
-        print('next')
         row = self.get_first_selected_i()
         if row >= 0:
             index = self.segment_model.index(row, 1)
