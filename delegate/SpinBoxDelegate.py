@@ -42,18 +42,17 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
             if left_arrow_button.contains(event.pos()):
                 if current_combo_value > 0:
                     value_changed = True
-                    current_combo_value = current_combo_value-1
+                    current_combo_value = current_combo_value - 1
 
             # If left button was clicked, we increase combo index
             if right_arrow_button.contains(event.pos()):
                 # TODO: Globally handle right combo limit (for all the project)
                 value_changed = True
-                current_combo_value = current_combo_value+1
+                current_combo_value = current_combo_value + 1
 
-            # Updates model and send signal to the view
+            # Report the changes to the model
             if value_changed:
-                model._set_attribute_from_index(index, current_combo_value)
-                model.dataChanged.emit(index, index, [QtCore.Qt.EditRole])
+                model.setData(index, current_combo_value)
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
