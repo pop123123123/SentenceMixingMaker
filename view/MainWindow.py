@@ -15,12 +15,30 @@ from view import preview
 from view.NewProjectDialog import NewProjectDialog
 from worker import AnalyzeWorker, AnalyzeWorkerPool, Worker, WorkerSignals
 
+from sentence_mixing.video_creator.download import dl_video
+
+import sentence_mixing as sm
+from worker import Worker
+
+
+def download_video_and_audio(urls):
+    vid_paths = list(map(dl_video, urls))
+    videos = sm.sentence_mixer.get_videos(urls)
+
+    for video, path in zip(videos, vid_paths):
+        n = len(video._base_path)
+        assert path[:n] == video._base_path
+        video.extension = path[n + 1 :]
+
+    return videos
 
 class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
-    def __init__(self, project, video_dl_worker):
+    def __init__(self, project):
         QtWidgets.QMainWindow.__init__(self)
         Ui_Sentence.__init__(self)
         self.setupUi(self)
+
+        self.threadpool = QtCore.QThreadPool()
 
         self.actionNew.triggered.connect(self.new)
         self.actionOpen.triggered.connect(self.open)
@@ -88,7 +106,6 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.previewer = None
         self.threadpool = QtCore.QThreadPool()
 
-        self.video_dl_worker = video_dl_worker
         self.analyze_worker_pool = AnalyzeWorkerPool(
             self.segment_model, self.threadpool
         )
@@ -99,6 +116,13 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
     def open_project(self, project):
         self.project = project
+
+        self.video_dl_worker = Worker(download_video_and_audio, project.urls[0])
+        self.video_dl_worker.signals.result.connect(project.set_videos)
+        self.video_dl_worker.signals.error.connect(print)
+
+        self.threadpool.start(self.video_dl_worker)
+
         self.segment_model = SegmentModel(project)
         self.tableView.setModel(self.segment_model)
 
@@ -375,8 +399,17 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
     def new(self):
         findDialog = NewProjectDialog(self)
         seed, urls = findDialog.get_project_settings()
-        self.open_project(Project(None, seed, urls))
-        self.segment_model.command_stack.resetClean()
+        if urls is not None:
+            self.open_project(Project(None, seed, [urls]))
+            self.segment_model.command_stack.resetClean()
+
+    def fromNew():
+        findDialog = NewProjectDialog(None)
+        seed, urls = findDialog.get_project_settings()
+        if urls is not None:
+            p = Project(None, seed, [urls])
+            return MainWindow(p)
+        return None
 
     def open(self):
         path, _ = QtWidgets.QFileDialog.getOpenFileName(

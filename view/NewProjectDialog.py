@@ -32,7 +32,7 @@ class NewProjectDialog(QtWidgets.QDialog):
 
     def get_project_settings(self):
         ret = self.exec_()
-        if ret == QtWidgets.QMessageBox.Ok:
+        if ret == 1:
             seed = self.ui.seed.text()
             urls = [
                 self.ui.url_list.item(i).text()
