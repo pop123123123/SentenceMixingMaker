@@ -122,7 +122,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             preview.previewManager.cancel(
                 self.segment_model.get_segment_from_index(_previous)
             )
-        if self.previewer is not None:
+        if self.previewer is not None and current.row() != _previous.row():
             self.previewer.stop()
 
     def selection_change(self, newly_selected, newly_deselected):
