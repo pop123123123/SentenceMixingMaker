@@ -135,3 +135,13 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
         painter.drawRect(option_spinbox.rect)
 
         painter.restore()
+
+    def sizeHint(self, option, index):
+        """Gives an hint about the minimal size of the element to the view"""
+        number_of_digits_to_draw = len(str(index.data()))
+        arrow_button_width = 25
+
+        width = number_of_digits_to_draw * 10 + 2 * arrow_button_width
+        height = 45
+
+        return QtCore.QSize(width, height)
