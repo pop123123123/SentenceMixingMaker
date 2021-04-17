@@ -30,7 +30,7 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
         """
 
         # If the event is a click event
-        if event.type() == QtCore.QEvent.MouseButtonPress:
+        if event.type() == QtCore.QEvent.MouseButtonRelease:
             # Retrieves the button positions
             left_arrow_button, right_arrow_button = self.get_left_right_arrow_buttons(option)
 
