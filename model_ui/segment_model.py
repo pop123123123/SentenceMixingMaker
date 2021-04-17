@@ -247,13 +247,26 @@ class SegmentModel(QtCore.QAbstractTableModel):
         return ["text/json"]
 
     def mimeData(self, indexes):
-        data = [
+        """This function is called to generate MIME data.
+        This is used by drag and drop functionality for example.
+        The data are encoded in JSON following this format:
+        {
+            [0, {"sentence": "Salut", "index": 15}],
+            [7, {"sentence": "Les mecs", "index": 2}]
+        }
+        With 0 and 7 the associated rows.
+        """
+
+        serializable_segments_dict = dict(
             (
                 index.row(),
-                self.get_chosen_from_index(index).to_JSON_serializable(),
+                self.get_chosen_from_index(index).to_JSON_serializable()
             )
             for index in indexes
-        ]
+        )
+
+        data = [(row, serializable) for row, serializable in serializable_segments_dict.items()]
+
         dragData = json.dumps(data)
         mimeData = QtCore.QMimeData()
         mimeData.setData("text/json", QtCore.QByteArray(str.encode(dragData)))
