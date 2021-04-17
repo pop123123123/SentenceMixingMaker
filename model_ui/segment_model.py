@@ -218,6 +218,7 @@ class SegmentModel(QtCore.QAbstractTableModel):
         for i, chosen_segment in enumerate(self.project.ordered_segments):
             if chosen_segment.sentence == sentence:
                 trigger_data_changed(Columns.sentence)
+                trigger_data_changed(Columns.combo_index)
                 trigger_data_changed(Columns.analyzing)
                 return
 
