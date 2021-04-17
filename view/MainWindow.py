@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 from PySide2 import QtCore, QtGui, QtMultimedia, QtMultimediaWidgets, QtWidgets
+from PySide2.QtWidgets import QHeaderView
 from sentence_mixing.video_creator.video import create_video_file
 
 import view.commands as commands
@@ -75,6 +76,9 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.tableView.currentChanged = self.table_index_change
         self.tableView.selectionModel().selectionChanged.connect(self.selection_change)
         self.segment_model.dataChanged.connect(self.data_changed)
+
+        self.tableView.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+        self.tableView.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
 
         self.pushButton_preview.clicked.connect(self.complete_preview)
         self.pushButton_add_sentence.clicked.connect(self.add_sentence)
