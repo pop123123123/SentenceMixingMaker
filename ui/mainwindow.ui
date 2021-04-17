@@ -184,7 +184,6 @@
     <addaction name="separator"/>
     <addaction name="actionPrevious_Combo"/>
     <addaction name="actionNext_Combo"/>
-    <addaction name="actionEdit_Sentence"/>
     <addaction name="separator"/>
     <addaction name="actionAdd_segment"/>
     <addaction name="actionAdd_Segment_Below"/>
@@ -342,11 +341,6 @@
    </property>
    <property name="shortcut">
     <string>Left</string>
-   </property>
-  </action>
-  <action name="actionEdit_Sentence">
-   <property name="text">
-    <string>Edit Sentence</string>
    </property>
   </action>
   <action name="actionAdd_segment">
