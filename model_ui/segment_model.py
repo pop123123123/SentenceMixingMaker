@@ -212,7 +212,7 @@ class SegmentModel(QtCore.QAbstractTableModel):
             topleft = self.index(i, column.value)
             bottomright = self.index(i, column.value)
             self.dataChanged.emit(
-                topleft, bottomright, (QtCore.Qt.EditRole)
+                topleft, bottomright, [QtCore.Qt.EditRole]
             )
 
         for i, chosen_segment in enumerate(self.project.ordered_segments):
