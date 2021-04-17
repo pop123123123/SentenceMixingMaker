@@ -198,13 +198,28 @@ class SegmentModel(QtCore.QAbstractTableModel):
 
     @QtCore.Slot()
     def analysis_state_changed(self, sentence):
+        """Triggered when a data segment model finished its analysis
+        This function will find the segment that finished its analysis and send
+        a dataChanged signal targetting the sentence column and a dataChanged
+        signal targetting analyzer column.
+        The sentence data changed is used to trigger a data() with decoration
+        role in order to remove the analyzing icon.
+        The analyzer data changed is used to update the status of the column
+        analysis (which is for the moment unused).
+        """
+
+        def trigger_data_changed(column):
+            topleft = self.index(i, column.value)
+            bottomright = self.index(i, column.value)
+            self.dataChanged.emit(
+                topleft, bottomright, (QtCore.Qt.EditRole)
+            )
+
         for i, chosen_segment in enumerate(self.project.ordered_segments):
             if chosen_segment.sentence == sentence:
-                topleft = self.index(i, Columns.analyzing.value)
-                bottomright = self.index(i, Columns.analyzing.value)
-                self.dataChanged.emit(
-                    topleft, bottomright, (QtCore.Qt.EditRole)
-                )
+                trigger_data_changed(Columns.sentence)
+                trigger_data_changed(Columns.analyzing)
+                return
 
     def flags(self, index):
         default_flags = super().flags(index)
