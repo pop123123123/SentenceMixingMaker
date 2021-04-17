@@ -169,9 +169,29 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>30</height>
+     <height>23</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>&amp;Edit</string>
+    </property>
+    <addaction name="actionUndo"/>
+    <addaction name="actionRedo"/>
+    <addaction name="separator"/>
+    <addaction name="actionCopy"/>
+    <addaction name="actionPaste"/>
+    <addaction name="separator"/>
+    <addaction name="actionPrevious_Combo"/>
+    <addaction name="actionNext_Combo"/>
+    <addaction name="actionEdit_Sentence"/>
+    <addaction name="separator"/>
+    <addaction name="actionAdd_segment"/>
+    <addaction name="actionAdd_Segment_Below"/>
+    <addaction name="actionAdd_Segment_Above"/>
+    <addaction name="separator"/>
+    <addaction name="actionRemove_Segment_s"/>
+   </widget>
    <widget class="QMenu" name="menucoucou">
     <property name="title">
      <string>Fi&amp;le</string>
@@ -186,18 +206,16 @@
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
-   <widget class="QMenu" name="menuEdit">
+   <widget class="QMenu" name="menuPreview">
     <property name="title">
-     <string>&amp;Edit</string>
+     <string>Preview</string>
     </property>
-    <addaction name="actionUndo"/>
-    <addaction name="actionRedo"/>
-    <addaction name="separator"/>
-    <addaction name="actionCopy"/>
-    <addaction name="actionPaste"/>
+    <addaction name="actionPreview_current"/>
+    <addaction name="actionPreview_all"/>
    </widget>
    <addaction name="menucoucou"/>
    <addaction name="menuEdit"/>
+   <addaction name="menuPreview"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionNew">
@@ -292,6 +310,72 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+E</string>
+   </property>
+  </action>
+  <action name="actionPreview_current">
+   <property name="text">
+    <string>Preview current</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Space</string>
+   </property>
+  </action>
+  <action name="actionPreview_all">
+   <property name="text">
+    <string>Preview all</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Return</string>
+   </property>
+  </action>
+  <action name="actionNext_Combo">
+   <property name="text">
+    <string>Next Combo</string>
+   </property>
+   <property name="shortcut">
+    <string>Right</string>
+   </property>
+  </action>
+  <action name="actionPrevious_Combo">
+   <property name="text">
+    <string>Previous Combo</string>
+   </property>
+   <property name="shortcut">
+    <string>Left</string>
+   </property>
+  </action>
+  <action name="actionEdit_Sentence">
+   <property name="text">
+    <string>Edit Sentence</string>
+   </property>
+  </action>
+  <action name="actionAdd_segment">
+   <property name="text">
+    <string>Add Segment</string>
+   </property>
+  </action>
+  <action name="actionAdd_Segment_Below">
+   <property name="text">
+    <string>Add Segment Below</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Down</string>
+   </property>
+  </action>
+  <action name="actionAdd_Segment_Above">
+   <property name="text">
+    <string>Add Segment Above</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Up</string>
+   </property>
+  </action>
+  <action name="actionRemove_Segment_s">
+   <property name="text">
+    <string>Remove Segment(s)</string>
+   </property>
+   <property name="shortcut">
+    <string>Del</string>
    </property>
   </action>
  </widget>

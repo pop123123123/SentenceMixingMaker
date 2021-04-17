@@ -87,6 +87,7 @@ class Previewer:
         self.timer.timeout.connect(self.update_frame)
 
         self.timer.start(self.period_ms * 1000)
+        self.t = 0
 
         if self.audio_format is not None:
             self.audio_output = QtMultimedia.QAudioOutput(

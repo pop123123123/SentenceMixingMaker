@@ -28,6 +28,16 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.actionExport.triggered.connect(self.export_all)
         self.actionExport_selection.triggered.connect(self.export_selection)
         self.actionQuit.triggered.connect(self.quit)
+        self.actionPreview_current.triggered.connect(self.preview_current)
+        self.actionPreview_all.triggered.connect(self.complete_preview)
+
+        self.actionPrevious_Combo.triggered.connect(self.previous_combo)
+        self.actionNext_Combo.triggered.connect(self.next_combo)
+
+        self.actionAdd_segment.triggered.connect(self.add_sentence)
+        self.actionAdd_Segment_Above.triggered.connect(self.add_sentence_above)
+        self.actionAdd_Segment_Below.triggered.connect(self.add_sentence_below)
+        self.actionRemove_Segment_s.triggered.connect(self.remove_sentence)
 
         self.graphicsView = QtWidgets.QGraphicsView()
         self.video_layout.addWidget(self.graphicsView)
@@ -69,7 +79,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.pushButton_preview.clicked.connect(self.complete_preview)
         self.pushButton_add_sentence.clicked.connect(self.add_sentence)
         self.pushButton_remove_sentence.clicked.connect(self.remove_sentence)
-        self.preview_checkBox.clicked.connect(self.pause)
+        self.preview_checkBox.clicked.connect(self.set_loop)
 
         self.previewer = None
         self.threadpool = QtCore.QThreadPool()
@@ -81,6 +91,8 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
         self.show_warning_message = True
 
+        self.preview_loop = False
+
     def open_project(self, project):
         self.project = project
         self.segment_model = SegmentModel(project)
@@ -90,10 +102,25 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
     def stackCleanChanged(self, is_clean):
         self.setWindowModified(not is_clean)
 
-    def add_sentence(self):
+    def add_sentence_above(self):
+        i = self.get_first_selected_i()
+        command = commands.AddSegmentCommand(
+            self.segment_model, self.tableView, i, i
+        )
+        self.segment_model.command_stack.push(command)
+
+    def add_sentence_below(self):
         i = self.get_first_selected_i()
         command = commands.AddSegmentCommand(
             self.segment_model, self.tableView, i, i + 1
+        )
+        self.segment_model.command_stack.push(command)
+
+    def add_sentence(self):
+        i = self.get_first_selected_i()
+        n = self.segment_model.rowCount(self)
+        command = commands.AddSegmentCommand(
+            self.segment_model, self.tableView, i, n
         )
         self.segment_model.command_stack.push(command)
 
@@ -133,6 +160,9 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         else:
             self.pushButton_remove_sentence.setDisabled(False)
 
+    def set_loop(self, state):
+        self.preview_loop = state
+        self.pause(state)
 
     def pause(self, state):
         if self.previewer is not None:
@@ -290,9 +320,9 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         ):
             if self.previewer is not None:
                 self.previewer.stop()
-            self.preview_checkBox.setChecked(True)
+            # self.preview_checkBox.setChecked(True)
             self.previewer = previewer
-            self.previewer.run(self.pixmap, self.graphicsView, True)
+            self.previewer.run(self.pixmap, self.graphicsView, self.preview_loop)
 
 
     def preview_combo(self, i):
@@ -308,6 +338,29 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
                 self.threadpool, segment.combos[i + 1 : i + 6]
             )
             self._preview_combo(preview.blank_preview)
+
+    def preview_current(self):
+        row = self.get_first_selected_i()
+        if row >= 0:
+            index = self.segment_model.index(row, 1)
+            i = self.segment_model.get_attribute_from_index(index)
+            self.preview_combo(i)
+
+    def previous_combo(self):
+        print('prev')
+        row = self.get_first_selected_i()
+        if row >= 0:
+            index = self.segment_model.index(row, 1)
+            i = self.segment_model.get_attribute_from_index(index)
+            self.segment_model.setData(index, max(i - 1, 0))
+
+    def next_combo(self):
+        print('next')
+        row = self.get_first_selected_i()
+        if row >= 0:
+            index = self.segment_model.index(row, 1)
+            i = self.segment_model.get_attribute_from_index(index)
+            self.segment_model.setData(index, i + 1)
 
     def closeEvent(self, event):
         if self.wants_to_quit():
