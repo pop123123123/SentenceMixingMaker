@@ -55,8 +55,11 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         )
 
         import delegate.SpinBoxDelegate as spinbox_delegate
-        self.tableView.setItemDelegateForColumn(1, spinbox_delegate.SpinBoxDelegate(self.tableView))
-        self.tableView.setColumnHidden(2, True)
+        self.tableView.setItemDelegateForColumn(
+            Columns.combo_index.value,
+            spinbox_delegate.SpinBoxDelegate(self.tableView))
+
+        self.tableView.setColumnHidden(Columns.analyzing.value, True)
 
         # self.tableView.indexesMoved.connect(self.table_index_change)
         self.tableView.currentChanged = self.table_index_change
@@ -240,7 +243,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         # In our model, segment_model have three columns, then, selection model
         # will return three selected items per selected segment_model
         # We only keep one index value for each row
-        return [index for index in self.tableView.selectionModel().selectedIndexes() if index.column() == 0]
+        return [index for index in self.tableView.selectionModel().selectedIndexes() if index.column() == Columns.sentence.value]
 
     def get_all_selected_i(self):
         return [index.row() for index in self.get_all_selected_indexes()]

@@ -21,7 +21,7 @@ COLUMN_INDEX_TO_ATTRIBUTE = {
 class Columns(Enum):
     sentence = 0
     combo_index = 1
-    analysing = 2
+    analyzing = 2
 
 
 class ChosenCombo:
@@ -105,9 +105,9 @@ class SegmentModel(QtCore.QAbstractTableModel):
     def _formatted_data(self, index):
         data = self.get_attribute_from_index(index)
         column = index.column()
-        if column == 1:
+        if column == Columns.combo_index.value:
             data = str(data)
-        elif column == 2:
+        elif column == Columns.analyzing.value:
             data = str(data)
 
         return data
@@ -116,12 +116,12 @@ class SegmentModel(QtCore.QAbstractTableModel):
         data = self.get_attribute_from_index(index)
 
         if role == QtCore.Qt.DisplayRole:
-            if index.column() == 0 and data == "":
+            if index.column() == Columns.sentence.value and data == "":
                 data = "<Empty>"
             return str(data)
 
         if role == QtCore.Qt.DecorationRole:
-            if index.column() == 0:
+            if index.column() == Columns.sentence.value:
                 if self.get_segment_from_index(index).is_analyzing():
                     return QtGui.QIcon.fromTheme("view-refresh")
 
@@ -200,8 +200,8 @@ class SegmentModel(QtCore.QAbstractTableModel):
     def analysis_state_changed(self, sentence):
         for i, chosen_segment in enumerate(self.project.ordered_segments):
             if chosen_segment.sentence == sentence:
-                topleft = self.index(i, 2)
-                bottomright = self.index(i, 2)
+                topleft = self.index(i, Columns.analyzing.value)
+                bottomright = self.index(i, Columns.analyzing.value)
                 self.dataChanged.emit(
                     topleft, bottomright, (QtCore.Qt.EditRole)
                 )
