@@ -29,40 +29,52 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
         buttons.
         """
 
-        # If the event is a click event
-        if event.type() == QtCore.QEvent.MouseButtonRelease:
-            # Retrieves the button positions
-            left_arrow_button, right_arrow_button = self.get_left_right_arrow_buttons(option)
+        # We are only handling mouse release and mouse double click events
+        if not (event.type() == QtCore.QEvent.MouseButtonDblClick
+                or event.type() == QtCore.QEvent.MouseButtonRelease):
+            return False
 
-            # Retrieves the combo index value from the model index
-            current_combo_value = int(index.data())
+        # If the user double clicked in a non-arrow-button area, we consider
+        # he whants to open standard SpinBoxEditor, so we return False to mark
+        # the event as unhandled
+        if event.type() == QtCore.QEvent.MouseButtonDblClick:
+            if self.get_number_area(option).contains(event.pos()):
+                return False
 
-            value_changed = False
-            # If left button was clicked, we decrease combo index
-            if left_arrow_button.contains(event.pos()):
-                if current_combo_value > 0:
-                    value_changed = True
-                    current_combo_value = current_combo_value - 1
+        # Retrieves the button positions
+        left_arrow_button, right_arrow_button = self.get_left_right_arrow_buttons(option)
 
-            # If left button was clicked, we increase combo index
-            if right_arrow_button.contains(event.pos()):
-                # TODO: Globally handle right combo limit (for all the project)
+        # Retrieves the combo index value from the model index
+        current_combo_value = int(index.data())
+
+        value_changed = False
+        # If left button was clicked, we decrease combo index
+        if left_arrow_button.contains(event.pos()):
+            if current_combo_value > 0:
                 value_changed = True
-                current_combo_value = current_combo_value + 1
+                current_combo_value = current_combo_value - 1
 
-            # Report the changes to the model
-            if value_changed:
-                model.setData(index, current_combo_value)
+        # If left button was clicked, we increase combo index
+        if right_arrow_button.contains(event.pos()):
+            # TODO: Globally handle right combo limit (for all the project)
+            value_changed = True
+            current_combo_value = current_combo_value + 1
+
+        # Report the changes to the model
+        if value_changed:
+            model.setData(index, current_combo_value)
+
+        return True
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
 
     def get_left_arrow_button(self, option):
         """Creates the left arrow button, depending on the option rect area"""
-        arrow_buttons_size = option.rect.height()//1.5
+        arrow_buttons_size = option.rect.height() // 1.5
         left_arrow_box = QtCore.QRect(
-            option.rect.left()+1,
-            option.rect.top()+(option.rect.height()//4.5),
+            option.rect.left() + 1,
+            option.rect.top() + (option.rect.height() // 4.5),
             arrow_buttons_size,
             arrow_buttons_size)
         return left_arrow_box
@@ -76,10 +88,10 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
 
     def get_right_arrow_button(self, option):
         """Creates the right arrow button, depending on the option rect area"""
-        arrow_buttons_size = option.rect.height()//1.5
+        arrow_buttons_size = option.rect.height() // 1.5
         right_arrow_box = QtCore.QRect(
-            option.rect.right()-arrow_buttons_size,
-            option.rect.top()+(option.rect.height()//4.5),
+            option.rect.right() - arrow_buttons_size,
+            option.rect.top() + (option.rect.height() // 4.5),
             arrow_buttons_size,
             arrow_buttons_size)
         return right_arrow_box
@@ -97,6 +109,19 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
     def paint_left_right_arrow_buttons(self, painter, option):
         self.paint_left_arrow_button(painter, option)
         self.paint_right_arrow_button(painter, option)
+
+    def get_number_area(self, option):
+        left_arrow_button, right_arrow_button = self.get_left_right_arrow_buttons(option)
+
+        left_arrow_area_width = left_arrow_button.right() - option.rect.left()
+        right_arrow_area_width = option.rect.right() - right_arrow_button.left()
+        width = option.rect.width() - left_arrow_area_width - right_arrow_area_width
+        return QtCore.QRect(
+            left_arrow_button.right(),
+            option.rect.top(),
+            width,
+            option.rect.height()
+        )
 
     def paint(self, painter, option, index):
         painter.save()
