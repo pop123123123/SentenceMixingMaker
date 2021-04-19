@@ -16,7 +16,7 @@ class NewProjectDialog(QtWidgets.QDialog):
         )
 
     def add_url(self):
-        self.ui.url_list.addItem("https://www.youtube.com/watch?v=XmiBSEEYRoo")
+        self.ui.url_list.addItem("https://www.youtube.com/watch?v=_ZZ8oyZUGn8")
         item = self.ui.url_list.item(self.ui.url_list.count() - 1)
         item.setFlags(item.flags() | QtCore.Qt.ItemIsEditable)
         self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(
