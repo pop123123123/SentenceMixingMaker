@@ -118,7 +118,13 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.project = project
 
         self.video_dl_worker = Worker(download_video_and_audio, project.urls[0])
-        self.video_dl_worker.signals.result.connect(project.set_videos)
+
+        def init(videos):
+            project.init_project(videos)
+            for s in project.segments.values():
+                self.segment_text_changed(s)
+
+        self.video_dl_worker.signals.result.connect(init)
         self.video_dl_worker.signals.error.connect(print)
 
         self.threadpool.start(self.video_dl_worker)
