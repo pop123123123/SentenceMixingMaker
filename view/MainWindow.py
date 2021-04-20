@@ -502,7 +502,9 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self.pop_error_box("Path is empty")
             return
 
-        if Path(path).suffix != ".mp4":
+        if Path(path).suffix == "":
+            path = path + ".mp4"
+        elif Path(path).suffix != ".mp4":
             self.pop_error_box("Exported file must have '.mp4' extension")
             return
 
