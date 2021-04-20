@@ -6,6 +6,7 @@ from sentence_mixing.video_creator.audio import concat_segments
 
 from worker import Worker
 
+PHONEM_CACHE = dict()
 
 def get_loading_frames(fps):
     w, h = fps, int(9.0 * fps / 16)
@@ -67,10 +68,11 @@ class Previewer:
         if audio_phonems is None:
             self.frames = get_loading_frames(fps)
         else:
-            self.frames = [
-                p._get_original_video().get_frame(t)[::4, ::4].copy(order="C")
-                for p in audio_phonems for t in np.arange(p.start, p.end, self.period_ms)
-            ]
+            for p in audio_phonems:
+                if p not in PHONEM_CACHE:
+                    PHONEM_CACHE[p] = [p._get_original_video().get_frame(t)[::4, ::4].copy(order="C") for t in np.arange(p.start, p.end, self.period_ms)]
+
+            self.frames = [f for p in audio_phonems for f in PHONEM_CACHE[p]]
 
     def __repr__(self):
         return f"<Preview for combo {self.combo}>"
