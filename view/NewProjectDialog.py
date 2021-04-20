@@ -1,4 +1,5 @@
 # This Python file uses the following encoding: utf-8
+import random
 from PySide2 import QtCore, QtWidgets
 
 from ui.generated.new import Ui_NewProject
@@ -34,6 +35,8 @@ class NewProjectDialog(QtWidgets.QDialog):
         ret = self.exec_()
         if ret == 1:
             seed = self.ui.seed.text()
+            if seed == "":
+                seed = random.random()
             urls = [
                 self.ui.url_list.item(i).text()
                 for i in range(self.ui.url_list.count())

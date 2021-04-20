@@ -21,9 +21,9 @@ import sentence_mixing as sm
 from worker import Worker
 
 
-def download_video_and_audio(urls):
+def download_video_and_audio(urls, seed):
     vid_paths = list(map(dl_video, urls))
-    videos = sm.sentence_mixer.get_videos(urls)
+    videos = sm.sentence_mixer.get_videos(urls, seed)
 
     for video, path in zip(videos, vid_paths):
         n = len(video._base_path)
@@ -117,7 +117,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
     def open_project(self, project):
         self.project = project
 
-        self.video_dl_worker = Worker(download_video_and_audio, project.urls[0])
+        self.video_dl_worker = Worker(download_video_and_audio, project.urls[0], project.seed)
 
         def init(videos):
             project.init_project(videos)
