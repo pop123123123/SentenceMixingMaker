@@ -67,12 +67,9 @@ class Previewer:
         if audio_phonems is None:
             self.frames = get_loading_frames(fps)
         else:
-            clip = concatenate_videoclips(
-                [phonem.get_video_clip() for phonem in audio_phonems]
-            )
             self.frames = [
-                clip.get_frame(t)[::4, ::4].copy(order="C")
-                for t in np.arange(0, clip.duration, self.period_ms)
+                p._get_original_video().get_frame(t)[::4, ::4].copy(order="C")
+                for p in audio_phonems for t in np.arange(p.start, p.end, self.period_ms)
             ]
 
     def __repr__(self):
