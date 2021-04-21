@@ -336,8 +336,8 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         return None
 
     @QtCore.Slot()
-    def complete_preview(self):
-        phonems = self.collect_combos(strict=False)
+    def complete_preview(self, *_, chosen=None):
+        phonems = self.collect_combos(chosen_list=chosen, strict=False)
         previewer = preview.Previewer(None, audio_phonems=phonems)
         if self.previewer is not None:
             self.previewer.stop()
@@ -374,11 +374,17 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
             self._preview_combo(preview.blank_preview)
 
     def preview_current(self):
-        row = self.get_first_selected_i()
-        if row >= 0:
+        rows = self.get_all_selected_i()
+        if len(rows) == 1 and rows[0] >= 0:
+            row = rows[0]
             index = self.segment_model.index(row, 1)
             i = self.segment_model.get_attribute_from_index(index)
             self.preview_combo(i)
+        elif len(rows) > 1:
+            chosen = [
+                self.segment_model.get_chosen_from_row(r) for r in rows
+            ]
+            self.complete_preview(chosen=chosen)
 
     def previous_combo(self):
         row = self.get_first_selected_i()
