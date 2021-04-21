@@ -3,10 +3,10 @@ import numpy as np
 from moviepy.video.compositing.concatenate import concatenate_videoclips
 from PySide2 import QtCore, QtGui, QtMultimedia
 from sentence_mixing.video_creator.audio import concat_segments
+import functools
 
 from worker import Worker
 
-PHONEM_CACHE = dict()
 
 def get_loading_frames(fps):
     w, h = fps, int(9.0 * fps / 16)
@@ -68,12 +68,11 @@ class Previewer:
         if audio_phonems is None:
             self.frames = get_loading_frames(fps)
         else:
-            for p in audio_phonems:
-                if p not in PHONEM_CACHE:
-                    PHONEM_CACHE[p] = [p._get_original_video().get_frame(t)[::4, ::4].copy(order="C") for t in np.arange(p.start, p.end, self.period_ms)]
+            self.frames = [f for p in audio_phonems for f in self.get_video_extract(p)]
 
-            self.frames = [f for p in audio_phonems for f in PHONEM_CACHE[p]]
-
+    @functools.lru_cache(maxsize=100)
+    def get_video_extract(self, p):
+        return [p._get_original_video().get_frame(t)[::8, ::8].copy(order="C") for t in np.arange(p.start, p.end, self.period_ms)]
     def __repr__(self):
         return f"<Preview for combo {self.combo}>"
 
