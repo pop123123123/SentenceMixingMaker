@@ -88,7 +88,6 @@ class Segment:
                     sm.process_sm(
                         self._sentence,
                         self.project.videos,
-                        seed=self.project.seed,
                         interrupt_callback=interrupt_callback,
                     )
                 )
