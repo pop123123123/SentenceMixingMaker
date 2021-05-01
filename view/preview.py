@@ -1,9 +1,10 @@
 # import threading
+import functools
+
 import numpy as np
 from moviepy.video.compositing.concatenate import concatenate_videoclips
 from PySide2 import QtCore, QtGui, QtMultimedia
 from sentence_mixing.video_creator.audio import concat_segments
-import functools
 
 from worker import Worker
 
@@ -40,6 +41,21 @@ def get_format(rate, wave):
     return format
 
 
+video_cache = {}
+
+
+def hash_phonems(phonems):
+    return sum(hash(str(p.start) + p.word.sentence.video.url) for p in phonems)
+
+
+def get_from_cache(phonems):
+    return video_cache[hash_phonems(phonems)]
+
+
+def add_to_cache(phonems, frames):
+    video_cache[hash_phonems(phonems)] = frames
+
+
 class Previewer:
     def __init__(self, combo, fps=15, audio_phonems=None):
         self.combo = combo
@@ -68,11 +84,33 @@ class Previewer:
         if audio_phonems is None:
             self.frames = get_loading_frames(fps)
         else:
-            self.frames = [f for p in audio_phonems for f in self.get_video_extract(p)]
+            self.frames = self.get_video_extract(audio_phonems)
+
+    def get_video_extract(self, ps):
+        frames = []
+        try:
+            frames = get_from_cache(ps)
+        except KeyError:
+            s = 0
+            for p in ps:
+                p_frames = self.get_phonem_frames(p)
+                start = p.start + s
+                p_range = np.arange(start, p.end, self.period_ms)
+                frames += [
+                    p_frames[min(len(p_frames) - 1, int(k))]
+                    for k in np.round((p_range - p.start) / self.period_ms)
+                ]
+                s = self.period_ms - (p.end - p_range[-1])
+            add_to_cache(ps, frames)
+        return frames
 
     @functools.lru_cache(maxsize=100)
-    def get_video_extract(self, p):
-        return [p._get_original_video().get_frame(t)[::8, ::8].copy(order="C") for t in np.arange(p.start, p.end, self.period_ms)]
+    def get_phonem_frames(self, p):
+        return [
+            p._get_original_video().get_frame(t)[::8, ::8].copy(order="C")
+            for t in np.arange(p.start, p.end, self.period_ms)
+        ]
+
     def __repr__(self):
         return f"<Preview for combo {self.combo}>"
 
