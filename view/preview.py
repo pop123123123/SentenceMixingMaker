@@ -96,6 +96,9 @@ class Previewer:
                 p_frames = self.get_phonem_frames(p)
                 start = p.start + s
                 p_range = np.arange(start, p.end, self.period_ms)
+                if len(p_range) == 0:
+                    s -= p.end - p.start
+                    continue
                 frames += [
                     p_frames[min(len(p_frames) - 1, int(k))]
                     for k in np.round((p_range - p.start) / self.period_ms)
