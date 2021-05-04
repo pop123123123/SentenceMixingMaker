@@ -346,15 +346,20 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
 
     @QtCore.Slot()
     def _preview_combo(self, previewer):
-        current_combo = self.segment_model.get_chosen_from_index(
-            self.get_first_selected_index()
-        ).get_chosen_combo()
+        try:
+            current_combo = self.segment_model.get_chosen_from_index(
+                self.get_first_selected_index()
+            ).get_chosen_combo()
+        except IndexError:
+            # The user have changed segment and now points to a non-analyzed
+            # segment
+            return
+
         if previewer is not None and (
             previewer.combo is None or current_combo == previewer.combo
         ):
             if self.previewer is not None:
                 self.previewer.stop()
-            # self.preview_checkBox.setChecked(True)
             self.previewer = previewer
             self.previewer.run(self.pixmap, self.graphicsView, self.preview_loop)
 
