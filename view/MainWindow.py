@@ -167,6 +167,7 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
                 == 1
             ):
                 self.analyze_worker_pool.interrupt_worker(segment)
+                preview.previewManager.cancel(segment)
         # Analysis is already
         except KeyError:
             pass
