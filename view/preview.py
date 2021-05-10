@@ -217,10 +217,10 @@ class __PreviewManager:
 
     def get_preview_if_in_previews(self, combo):
         p = None
-        self.jobs_lock.lockForRead()
+        self.previous_lock.lockForRead()
         if combo in self.previews:
             p = self.previews[combo]
-        self.jobs_lock.unlock()
+        self.previous_lock.unlock()
         return p
 
     def get_first(self):
