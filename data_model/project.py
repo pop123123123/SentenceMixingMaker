@@ -35,7 +35,7 @@ def load_project(project_path):
         data = in_.readRawData(data_size)
 
         file.close()
-        return Project.from_JSON_serializable(pickle.loads(bytes(data)))
+        return Project.from_JSON_serializable(pickle.loads(bytes(data)), project_path)
 
 
 class Project:
@@ -48,14 +48,13 @@ class Project:
         self.ordered_segments = []
         self.ready = False
 
-    def from_JSON_serializable(schema):
-        p = Project(schema["path"], schema["seed"], schema["urls"])
+    def from_JSON_serializable(schema, path):
+        p = Project(path, schema["seed"], schema["urls"])
         p.ordered_segments = [ChosenCombo.from_JSON_serializable(p, c) for c in schema["ordered_segments"]]
         return p
 
     def to_JSON_serializable(self):
         schema = {
-            "path": self.path,
             "seed": self.seed,
             "urls": self.urls,
             "ordered_segments": [c.to_JSON_serializable() for c in self.ordered_segments]
