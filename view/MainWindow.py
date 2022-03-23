@@ -115,6 +115,10 @@ class MainWindow(Ui_Sentence, QtWidgets.QMainWindow):
         self.preview_loop = False
 
     def open_project(self, project):
+        """Sets table view's model with given Project object; runs downloading
+        of videos
+        """
+
         self.project = project
 
         self.video_dl_worker = Worker(download_video_and_audio, project.urls[0], project.seed)

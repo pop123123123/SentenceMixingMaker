@@ -5,6 +5,8 @@ from PySide2 import QtCore, QtWidgets, QtGui
 from ui.generated.new import Ui_NewProject
 
 class NewProjectDialog(QtWidgets.QDialog):
+    """Dialog window for new project creation"""
+
     def __init__(self, parent):
         QtWidgets.QDialog.__init__(self, parent)
         self.ui = Ui_NewProject()
@@ -16,6 +18,7 @@ class NewProjectDialog(QtWidgets.QDialog):
             False
         )
 
+        # Sets up the paste url shortcut
         paste = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+V"), self)
         paste.activated.connect(self.paste_urls)
 
@@ -30,6 +33,11 @@ class NewProjectDialog(QtWidgets.QDialog):
             self.add_url(url)
 
     def add_url(self, url=None):
+        """Add a new url to the list
+        If no url specified, takes the default one (Yannick) and turns it in
+        edit mode directly
+        """
+
         if url is not None:
             self.ui.url_list.addItem(url)
         else:
@@ -44,6 +52,7 @@ class NewProjectDialog(QtWidgets.QDialog):
             self.ui.url_list.editItem(item)
 
     def remove_url(self):
+        """Removes the selected url"""
         selected_indexes = self.ui.url_list.selectedIndexes()
         if len(selected_indexes) > 0:
             index = selected_indexes[0]
