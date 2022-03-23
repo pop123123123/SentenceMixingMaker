@@ -70,7 +70,10 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
         editor.setGeometry(option.rect)
 
     def get_left_arrow_button(self, option):
-        """Creates the left arrow button, depending on the option rect area"""
+        """Get left arrow button's bouding box, depending on the option rect
+        area
+        """
+
         arrow_buttons_size = option.rect.height() // 1.5
         left_arrow_box = QtCore.QRect(
             option.rect.left() + 1,
@@ -87,7 +90,10 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
         painter.drawText(left_arrow_box, QtCore.Qt.AlignCenter, "<")
 
     def get_right_arrow_button(self, option):
-        """Creates the right arrow button, depending on the option rect area"""
+        """Get right arrow button's bouding box, depending on the option rect
+        area
+        """
+
         arrow_buttons_size = option.rect.height() // 1.5
         right_arrow_box = QtCore.QRect(
             option.rect.right() - arrow_buttons_size,
@@ -104,13 +110,16 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
         painter.drawText(right_arrow_box, QtCore.Qt.AlignCenter, ">")
 
     def get_left_right_arrow_buttons(self, option):
+        """Gets both left and right arrows bounding boxes"""
         return self.get_left_arrow_button(option), self.get_right_arrow_button(option)
 
     def paint_left_right_arrow_buttons(self, painter, option):
+        """Creates and paints both left and right arrows"""
         self.paint_left_arrow_button(painter, option)
         self.paint_right_arrow_button(painter, option)
 
     def get_number_area(self, option):
+        """Gets the combo index area's bounding box"""
         left_arrow_button, right_arrow_button = self.get_left_right_arrow_buttons(option)
 
         left_arrow_area_width = left_arrow_button.right() - option.rect.left()
@@ -124,8 +133,10 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
         )
 
     def paint(self, painter, option, index):
+        """Paints the whole component"""
         painter.save()
 
+        # If the segment has not been analyzed yet, we print a blank cell
         if not self.is_segment_analyzed(index):
             painter.setPen(QtGui.QPen(QtGui.QColor(255, 255, 255)))
             painter.drawRect(option.rect)
@@ -139,8 +150,7 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
         # By default: white pen (eraser)
         painter.setPen(QtGui.QPen(QtGui.QColor(255, 255, 255)))
 
-        # If the segment have been analyzed: we draw information
-        # Else, we proint a blank cell
+        # If the segment has been analyzed: we draw information
         if self.is_segment_analyzed(index):
             painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0)))
 
